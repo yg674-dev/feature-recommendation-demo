@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentic Policy / Issue Flowchart</title>
+<style>
+  :root{
+    --page:#EEF2F7;
+    --card:#FFFFFF;
+    --soft:#F8FAFC;
+    --border:#CBD5E1;
+    --text:#1F2937;
+    --muted:#64748B;
+    --blue:#2563EB;
+    --blue-bg:#DBEAFE;
+    --blue-border:#93C5FD;
+    --purple:#7C3AED;
+    --purple-bg:#EDE9FE;
+    --purple-border:#C4B5FD;
+    --cyan:#0E8088;
+    --cyan-bg:#B0E3E6;
+    --cyan-border:#73C9CF;
+    --green:#047857;
+    --green-bg:#D1FAE5;
+    --green-border:#6EE7B7;
+    --yellow:#92400E;
+    --yellow-bg:#FFF2CC;
+    --yellow-border:#D6B656;
+    --pink:#BE123C;
+    --pink-bg:#FFE4E6;
+    --pink-border:#FDA4AF;
+    --orange:#B45309;
+    --orange-bg:#FFE6CC;
+    --orange-border:#D79B00;
+    --gray:#475569;
+    --gray-bg:#F1F5F9;
+  }
+  *{box-sizing:border-box}
+  html,body{
+    margin:0;
+    background:var(--page);
+    color:var(--text);
+    font-family:Inter,"PingFang SC","Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  body{
+    width:1800px;
+    padding:46px 50px 56px;
+    background-image:radial-gradient(circle,#D0D7E2 1px,transparent 1px);
+    background-size:14px 14px;
+  }
+  .hero{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    margin-bottom:22px;
+    padding:0 8px;
+  }
+  .eyebrow{
+    color:var(--blue);
+    font-size:12px;
+    font-weight:850;
+    letter-spacing:1px;
+  }
+  h1{
+    margin:7px 0 6px;
+    font-size:34px;
+    line-height:1.15;
+    letter-spacing:0;
+  }
+  .hero p{
+    margin:0;
+    color:var(--muted);
+    font-size:13px;
+  }
+  .meta{
+    text-align:right;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.75;
+  }
+  .surface{
+    position:relative;
+    width:1698px;
+    height:1360px;
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:10px;
+    box-shadow:0 10px 30px #0F172A10;
+    overflow:hidden;
+  }
+  .surface-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    height:58px;
+    padding:0 22px;
+    border-bottom:1px solid #DBE2EA;
+    background:var(--soft);
+  }
+  .surface-title{
+    font-size:16px;
+    font-weight:850;
+  }
+  .surface-rule{
+    color:var(--muted);
+    font-size:11px;
+    font-weight:750;
+  }
+  .canvas{
+    position:absolute;
+    inset:58px 0 0;
+  }
+  svg{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+  }
+  .line{
+    fill:none;
+    stroke:#7890AA;
+    stroke-width:2.4;
+    stroke-linecap:square;
+    stroke-linejoin:miter;
+  }
+  .loop{
+    fill:none;
+    stroke:#9673A6;
+    stroke-width:2.2;
+    stroke-dasharray:7 6;
+    stroke-linecap:square;
+    stroke-linejoin:miter;
+  }
+  .section-label{
+    position:absolute;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    height:28px;
+    padding:0 11px;
+    border:1px solid var(--border);
+    border-radius:6px;
+    background:#fff;
+    color:#334155;
+    font-size:11px;
+    font-weight:850;
+    letter-spacing:.4px;
+    text-transform:uppercase;
+    box-shadow:0 4px 14px #0F172A0B;
+  }
+  .node{
+    position:absolute;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:8px;
+    box-shadow:0 5px 18px #0F172A0D;
+    padding:16px 18px;
+  }
+  .node::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:0;
+    bottom:0;
+    width:4px;
+    border-radius:8px 0 0 8px;
+    background:var(--blue);
+  }
+  .node h3{
+    margin:0 0 8px;
+    font-size:18px;
+    line-height:1.25;
+    font-weight:850;
+  }
+  .node p{
+    margin:0;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.55;
+  }
+  .tag{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    height:22px;
+    padding:0 8px;
+    margin-bottom:10px;
+    border-radius:4px;
+    background:var(--blue-bg);
+    color:#1D4ED8;
+    font-size:10px;
+    font-weight:850;
+    letter-spacing:.35px;
+    text-transform:uppercase;
+  }
+  .input{
+    width:470px;
+    min-height:132px;
+  }
+  .input::before{background:var(--blue)}
+  .agent{
+    left:250px;
+    top:238px;
+    width:1198px;
+    min-height:266px;
+    border-color:var(--purple-border);
+    background:#FBFAFF;
+  }
+  .agent::before{background:var(--purple)}
+  .agent .tag{
+    color:#6D28D9;
+    background:var(--purple-bg);
+  }
+  .agent-grid{
+    display:grid;
+    grid-template-columns:310px 1fr 250px;
+    gap:18px;
+    align-items:stretch;
+    margin-top:8px;
+  }
+  .subbox{
+    border:1px solid #D8B4FE;
+    border-radius:7px;
+    background:#fff;
+    padding:13px 14px;
+  }
+  .subbox h4{
+    margin:0 0 8px;
+    color:#4C1D95;
+    font-size:13px;
+    font-weight:850;
+  }
+  .subbox p,.subbox li{
+    color:#64748B;
+    font-size:11.5px;
+    line-height:1.55;
+  }
+  .subbox ul{
+    margin:0;
+    padding-left:16px;
+  }
+  .skills{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .skill{
+    display:inline-flex;
+    align-items:center;
+    min-height:29px;
+    padding:5px 9px;
+    border:1px solid #C4B5FD;
+    border-radius:5px;
+    background:#F5F3FF;
+    color:#4C1D95;
+    font-size:11.5px;
+    font-weight:750;
+  }
+  .tools-wrap{
+    position:absolute;
+    left:86px;
+    top:638px;
+    width:1526px;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:18px;
+  }
+  .tools-wrap .node,
+  .outputs .node{
+    position:relative;
+    left:auto;
+    top:auto;
+  }
+  .tool{
+    min-height:170px;
+    padding:15px 16px 14px;
+  }
+  .tool h3{font-size:16px}
+  .tool ul{
+    margin:0;
+    padding-left:16px;
+    color:var(--muted);
+    font-size:11.5px;
+    line-height:1.65;
+  }
+  .tool.data::before{background:var(--orange)}
+  .tool.data{border-color:var(--orange-border);background:#FFF9F1}
+  .tool.data .tag{color:var(--orange);background:var(--orange-bg)}
+  .tool.rag::before{background:var(--green)}
+  .tool.rag{border-color:var(--green-border);background:#F0FDF4}
+  .tool.rag .tag{color:var(--green);background:var(--green-bg)}
+  .tool.logos::before{background:var(--cyan)}
+  .tool.logos{border-color:var(--cyan-border);background:#F0FDFA}
+  .tool.logos .tag{color:var(--cyan);background:var(--cyan-bg)}
+  .tool.feature::before{background:#0284C7}
+  .tool.feature{border-color:#7DD3FC;background:#F0F9FF}
+  .tool.feature .tag{color:#0369A1;background:#E0F2FE}
+  .outputs{
+    position:absolute;
+    left:204px;
+    top:980px;
+    width:1290px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:22px;
+  }
+  .output{
+    min-height:152px;
+  }
+  .output.policy::before{background:var(--pink)}
+  .output.policy{
+    border-color:var(--pink-border);
+    background:#FFF7F8;
+  }
+  .output.policy h3{color:var(--pink)}
+  .output.policy .tag{color:var(--pink);background:var(--pink-bg)}
+  .output.issue::before{background:var(--yellow)}
+  .output.issue{
+    border-color:var(--yellow-border);
+    background:#FFFBEB;
+  }
+  .output.issue h3{color:var(--yellow)}
+  .output.issue .tag{color:var(--yellow);background:var(--yellow-bg)}
+  .bullets{
+    margin:0;
+    padding-left:16px;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.6;
+  }
+  .edge-label{
+    position:absolute;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:4px 8px;
+    min-height:24px;
+    border-radius:4px;
+    background:#F5F1FB;
+    color:#111827;
+    font-size:12px;
+    font-weight:850;
+    white-space:nowrap;
+  }
+  .feedback{
+    position:absolute;
+    right:68px;
+    top:886px;
+    width:282px;
+    min-height:72px;
+    border:1px dashed #9673A6;
+    border-radius:7px;
+    background:#FBFAFF;
+    padding:12px 14px;
+    color:#5B21B6;
+    font-size:11.5px;
+    line-height:1.55;
+    font-weight:700;
+  }
+  .note{
+    position:absolute;
+    left:66px;
+    right:66px;
+    bottom:28px;
+    padding:12px 16px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--soft);
+    color:#475569;
+    font-size:11.5px;
+    line-height:1.65;
+  }
+  .note b{color:var(--blue)}
+</style>
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <div class="eyebrow">AGENTIC STRATEGY RECOMMENDATION · SKILLS + TOOLS + RL FEEDBACK</div>
+      <h1>Policy / Issue Agentic Flowchart</h1>
+      <p>从场景与异常输入出发，经 Agentic 推理层按需调用工具，输出策略推荐或研判辅助包。</p>
+    </div>
+    <div class="meta">
+      Base LLM native use · No fine-tuning<br>
+      Skills reusable · Tool calls traceable
+    </div>
+  </header>
+
+  <section class="surface">
+    <div class="surface-head">
+      <div class="surface-title">Agentic 推理与策略/研判输出链路</div>
+      <div class="surface-rule">Input → Agentic reasoning + reusable Skills → Tools → Policy / Issue outputs → RL feedback</div>
+    </div>
+
+    <div class="canvas">
+      <svg viewBox="0 0 1698 1302" aria-hidden="true">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10z" fill="#7890AA"></path>
+          </marker>
+          <marker id="arrowPurple" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10z" fill="#9673A6"></path>
+          </marker>
+        </defs>
+
+        <path class="line" marker-end="url(#arrow)" d="M849 158 L849 238"></path>
+        <path class="line" marker-end="url(#arrow)" d="M849 504 L849 620"></path>
+
+        <path class="line" d="M849 620 L849 592"></path>
+        <path class="line" d="M277 592 L1421 592"></path>
+        <path class="line" marker-end="url(#arrow)" d="M277 592 L277 638"></path>
+        <path class="line" marker-end="url(#arrow)" d="M658 592 L658 638"></path>
+        <path class="line" marker-end="url(#arrow)" d="M1039 592 L1039 638"></path>
+        <path class="line" marker-end="url(#arrow)" d="M1421 592 L1421 638"></path>
+
+        <path class="line" d="M277 808 L277 876"></path>
+        <path class="line" d="M658 808 L658 876"></path>
+        <path class="line" d="M1039 808 L1039 876"></path>
+        <path class="line" d="M1421 808 L1421 876"></path>
+        <path class="line" d="M277 876 L1421 876"></path>
+        <path class="line" marker-end="url(#arrow)" d="M526 876 L526 980"></path>
+        <path class="line" marker-end="url(#arrow)" d="M1172 876 L1172 980"></path>
+
+        <path class="loop" marker-end="url(#arrowPurple)" d="M1470 1020 L1602 1020 L1602 352 L1448 352"></path>
+      </svg>
+
+      <div class="section-label" style="left:756px;top:36px;">Input Sources</div>
+      <div class="node input" style="left:614px;top:74px;">
+        <span class="tag">Input</span>
+        <h3>输入</h3>
+        <p>场景描述 / 热力图异常簇 / Logos case 包</p>
+      </div>
+
+      <div class="section-label" style="left:722px;top:200px;">Reasoning Layer</div>
+      <div class="node agent">
+        <span class="tag">Agentic Layer</span>
+        <h3>Agentic 推理层</h3>
+        <p>基座大模型原生使用，不做微调；把推荐决策沉淀为可复用 Skills，并由 RL 基于真实反馈持续优化 Skills 的选择与组合。</p>
+
+        <div class="agent-grid">
+          <div class="subbox">
+            <h4>Base LLM</h4>
+            <p>负责场景理解、策略生成、证据综合与解释组织。模型能力以原生调用为主，不进入训练链路。</p>
+          </div>
+          <div class="subbox">
+            <h4>Reusable Skills</h4>
+            <div class="skills">
+              <span class="skill">场景理解<br>policy / issue 定性</span>
+              <span class="skill">证据收集</span>
+              <span class="skill">组合策略生成</span>
+              <span class="skill">风险评估</span>
+              <span class="skill">解释生成</span>
+            </div>
+          </div>
+          <div class="subbox">
+            <h4>RL Selection</h4>
+            <ul>
+              <li>推荐采纳率</li>
+              <li>策略包 Eval 结果</li>
+              <li>真实反馈驱动组合优化</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="edge-label" style="left:785px;top:556px;">按需调用工具 / Tools</div>
+      <div class="section-label" style="left:792px;top:602px;">Tool Layer</div>
+      <div class="tools-wrap">
+        <div class="node tool data">
+          <span class="tag">Tool 01</span>
+          <h3>规则推荐三要素工具</h3>
+          <ul>
+            <li>近 7 天数据</li>
+            <li>全球活动日历</li>
+            <li>模型快速监控</li>
+          </ul>
+        </div>
+        <div class="node tool rag">
+          <span class="tag">Tool 02</span>
+          <h3>RAG 检索工具</h3>
+          <ul>
+            <li>Case 库</li>
+            <li>策略包历史库</li>
+            <li>Eval Report</li>
+          </ul>
+        </div>
+        <div class="node tool logos">
+          <span class="tag">Tool 03</span>
+          <h3>Logos 工具</h3>
+          <ul>
+            <li>case 查询</li>
+            <li>case 打包</li>
+            <li>证据链沉淀</li>
+          </ul>
+        </div>
+        <div class="node tool feature">
+          <span class="tag">Tool 04</span>
+          <h3>特征工具</h3>
+          <ul>
+            <li>特征推荐</li>
+            <li>特征拆分</li>
+            <li>简单组合</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section-label" style="left:780px;top:938px;">Output Layer</div>
+      <div class="outputs">
+        <div class="node output policy">
+          <span class="tag">Policy Output</span>
+          <h3>policy 类输出</h3>
+          <ul class="bullets">
+            <li>策略候选 Top-N</li>
+            <li>解释 + 风险 + 证据</li>
+            <li>证据全部可点击溯源</li>
+          </ul>
+        </div>
+        <div class="node output issue">
+          <span class="tag">Issue Output</span>
+          <h3>issue 类输出</h3>
+          <ul class="bullets">
+            <li>研判辅助包</li>
+            <li>相似历史 issue 与当时处置路径</li>
+            <li>应急动作建议 + 转研判流程引导</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feedback">
+        RL 反馈闭环：推荐采纳率、策略包 Eval 结果、真实处置反馈 → 优化 Skill 选择与组合。
+      </div>
+
+      <div class="note">
+        <b>读图规则：</b> Agentic 层负责推理与 Skill 编排；Tools 层只在需要证据、数据、case 或特征能力时被调用；输出分为 policy 推荐与 issue 研判两条路径，所有关键证据要求可点击溯源。
+      </div>
+    </div>
+  </section>
+</body>
+</html>

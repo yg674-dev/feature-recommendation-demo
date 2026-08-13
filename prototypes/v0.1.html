@@ -1,0 +1,1844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Feature Platform · Agentic Workflow v0.1</title>
+<style>
+:root{
+  --primary:#3B82F6; --primary-hover:#2563EB; --primary-light:#EFF6FF;
+  --danger:#EF4444; --danger-light:#FEE2E2;
+  --warn:#F59E0B; --warn-light:#FEF3C7;
+  --success:#10B981; --success-light:#D1FAE5;
+  --purple:#7C3AED; --purple-light:#EDE9FE;
+  --required:#F97316;
+  --text-1:#111827; --text-2:#374151; --text-3:#6B7280; --text-4:#9CA3AF;
+  --border:#E5E7EB; --border-strong:#D1D5DB;
+  --bg:#FFFFFF; --bg-soft:#F9FAFB; --bg-hover:#F3F4F6;
+  --radius:6px; --radius-lg:10px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,.08);
+  --shadow-lg:0 12px 32px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  color:var(--text-1);background:var(--bg-soft);font-size:14px;line-height:1.5;
+}
+
+/* ---------- i18n ---------- */
+.i-en{display:none!important}
+body.lang-en .i-en{display:revert!important}
+body.lang-en .i-cn{display:none!important}
+
+/* ---------- Top nav ---------- */
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 18px;height:56px;
+  display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+.brand{font-weight:700;font-size:16px;color:var(--text-1);white-space:nowrap}
+.brand-sub{color:var(--text-3);font-weight:400;font-size:13px;margin-left:6px}
+.agent-panel-hd .t{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.tabs{display:flex;gap:1px;flex:1;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:7px 9px;border-radius:var(--radius);cursor:pointer;color:var(--text-2);
+  font-weight:500;transition:all .15s;white-space:nowrap;font-size:12.5px}
+.tab:hover{background:var(--bg-hover)}
+.tab.active{background:var(--primary-light);color:var(--primary)}
+.env-badge{padding:4px 10px;background:var(--warn-light);color:#92400E;border-radius:var(--radius);font-size:12px;font-weight:600;white-space:nowrap}
+
+/* ---------- Page shell ---------- */
+.page{display:none;padding:24px 32px 80px;max-width:1500px;margin:0 auto}
+.page.active{display:block}
+.page-header{margin-bottom:20px;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.page-title{font-size:22px;font-weight:700;color:var(--text-1)}
+.page-sub{color:var(--text-3);margin-top:4px;font-size:13px;max-width:820px}
+.crumb{color:var(--text-3);font-size:12px;margin-bottom:6px}
+.crumb .sep{margin:0 6px;color:var(--text-4)}
+.crumb .lk{color:var(--primary);cursor:pointer}
+
+/* ---------- Buttons ---------- */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--radius);
+  border:1px solid var(--border);cursor:pointer;font-size:13px;font-weight:600;transition:all .15s;
+  background:#fff;color:var(--text-2);font-family:inherit}
+.btn:hover{background:var(--bg-hover)}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:var(--primary-hover);border-color:var(--primary-hover)}
+.btn-danger{background:var(--danger);color:#fff;border-color:var(--danger)}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--primary);padding:6px 8px}
+.btn-ghost:hover{background:var(--primary-light)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+
+/* ---------- KPI ---------- */
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;cursor:pointer;transition:all .15s;position:relative}
+.kpi:hover{border-color:var(--primary);box-shadow:var(--shadow-sm)}
+.kpi.on{border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.kpi-label{font-size:11.5px;color:var(--text-3);margin-bottom:6px;display:flex;align-items:center;gap:6px;line-height:1.3}
+.kpi-value{font-size:24px;font-weight:700;color:var(--text-1)}
+.kpi-value .unit{font-size:12px;color:var(--text-3);font-weight:400;margin-left:4px}
+.kpi-delta{font-size:11px;font-weight:600;margin-top:3px}
+.kpi-delta.up{color:var(--danger)}.kpi-delta.down{color:var(--success)}.kpi-delta.flat{color:var(--text-4)}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot.blue{background:var(--primary)}.dot.green{background:var(--success)}
+.dot.amber{background:var(--warn)}.dot.red{background:var(--danger)}
+.dot.gray{background:var(--text-4)}.dot.purple{background:var(--purple)}
+
+/* ---------- Cards / panels ---------- */
+.panel{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:16px}
+.panel-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;
+  justify-content:space-between;background:var(--bg-soft);gap:12px;flex-wrap:wrap}
+.panel-title{font-weight:700;font-size:13px;color:var(--text-1);display:flex;align-items:center;gap:8px}
+.panel-hint{font-size:11px;color:var(--text-3);font-weight:400}
+.panel-body{padding:16px}
+.section-hd{font-size:12px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.section-hd:first-child{margin-top:0}
+
+/* ---------- Chips ---------- */
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap}
+.chip.red{background:var(--danger-light);color:#991B1B}
+.chip.amber{background:var(--warn-light);color:#92400E}
+.chip.green{background:var(--success-light);color:#065F46}
+.chip.blue{background:#DBEAFE;color:#1E40AF}
+.chip.purple{background:var(--purple-light);color:#5B21B6}
+.chip.gray{background:#F3F4F6;color:var(--text-3)}
+.chip.cyan{background:#CFFAFE;color:#0E7490}
+.code{font-family:"SF Mono",Consolas,monospace;font-size:12px;color:var(--text-2);background:var(--bg-soft);padding:2px 6px;border-radius:4px;white-space:nowrap}
+.mono{font-family:"SF Mono",Consolas,monospace}
+
+/* ---------- Table ---------- */
+.table-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:16px}
+.table-toolbar{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.table-toolbar .left{display:flex;align-items:center;gap:12px;color:var(--text-3);font-size:13px}
+.table-toolbar .right{display:flex;gap:8px}
+.scroll-x{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{background:var(--bg-soft);text-align:left;font-size:11.5px;font-weight:600;color:var(--text-3);
+  padding:11px 14px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.02em;white-space:nowrap}
+td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:13px}
+tbody tr:hover{background:var(--primary-light)}
+tbody tr.sev-critical{box-shadow:inset 3px 0 0 var(--danger)}
+tbody tr.sev-warning{box-shadow:inset 3px 0 0 var(--warn)}
+.cell-name{display:flex;flex-direction:column;gap:2px}
+.cell-name .en{color:var(--text-1);font-weight:600}
+.cell-name .cn{color:var(--text-3);font-size:11.5px}
+
+/* ---------- Filters ---------- */
+.filter-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:16px}
+.filter-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px 16px}
+.field-label{font-weight:700;font-size:12px;color:var(--text-1);margin-bottom:5px;display:block}
+.input,.select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);
+  font-size:13px;color:var(--text-1);background:#fff;font-family:inherit}
+.input:focus,.select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+
+/* ---------- Heatmap ---------- */
+.hm-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:#fff}
+.seg > div{padding:6px 12px;font-size:12px;font-weight:600;color:var(--text-3);cursor:pointer;border-right:1px solid var(--border)}
+.seg > div:last-child{border-right:0}
+.seg > div.on{background:var(--primary-light);color:var(--primary)}
+.hm-wrap{overflow-x:auto;padding:4px 0}
+.hm{border-collapse:separate;border-spacing:3px}
+.hm th{background:transparent;border:0;padding:4px 8px;font-size:11px;color:var(--text-3);text-transform:none;letter-spacing:0}
+.hm th.rowhd{text-align:right;font-weight:600;color:var(--text-2);white-space:nowrap}
+.hm td{border:0;padding:0}
+.hm-cell{width:88px;height:42px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;color:#fff;font-size:12px;font-weight:700;transition:transform .12s;border:2px solid transparent}
+.hm-cell:hover{transform:scale(1.06);box-shadow:var(--shadow-md)}
+.hm-cell.sel{border-color:var(--text-1)}
+.hm-cell .sub{font-size:9.5px;font-weight:600;opacity:.85}
+.hm-h5{background:#059669}.hm-h4{background:#34D399}.hm-h3{background:#FBBF24;color:#78350F}
+.hm-h2{background:#F97316}.hm-h1{background:#DC2626}.hm-h0{background:#E5E7EB;color:var(--text-4)}
+.hm-legend{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-3);margin-top:10px}
+.hm-legend i{width:22px;height:11px;border-radius:3px;display:inline-block}
+
+/* ---------- Metric breakdown ---------- */
+.metric-cat{margin-bottom:16px}
+.metric-cat-hd{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;color:var(--text-1);margin-bottom:8px}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px}
+.metric{border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;background:#fff}
+.metric.bad{border-color:#FCA5A5;background:#FEF2F2}
+.metric.warn{border-color:#FDE68A;background:#FFFBEB}
+.metric-k{font-size:11px;color:var(--text-3);font-family:"SF Mono",monospace;margin-bottom:4px;word-break:break-all}
+.metric-v{font-size:17px;font-weight:700;color:var(--text-1)}
+.metric-v small{font-size:11px;font-weight:600;color:var(--text-3);margin-left:4px}
+.metric-d{font-size:11px;font-weight:600;margin-top:2px}
+.metric-d.up{color:var(--danger)}.metric-d.down{color:var(--success)}.metric-d.flat{color:var(--text-4)}
+.spark{display:flex;align-items:flex-end;gap:2px;height:26px;margin-top:6px}
+.spark i{flex:1;background:var(--primary);opacity:.45;border-radius:1px}
+.spark.red i{background:var(--danger)}
+.spark i.hi{opacity:1}
+
+/* ---------- Distribution bars ---------- */
+.dist{margin-top:6px}
+.dist-row{display:grid;grid-template-columns:150px 1fr 64px 64px;gap:8px;align-items:center;padding:5px 0;font-size:12px}
+.dist-row.hd{font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.03em;font-weight:700;border-bottom:1px solid var(--border);padding-bottom:6px}
+.dist-bar{height:14px;background:var(--bg-hover);border-radius:3px;position:relative;overflow:hidden}
+.dist-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--primary);opacity:.35}
+.dist-bar b{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--danger)}
+.dist-num{text-align:right;font-family:"SF Mono",monospace;font-size:11.5px}
+.dist-num.drop{color:var(--danger);font-weight:700}
+.dist-num.rise{color:var(--warn);font-weight:700}
+
+/* ---------- Agent panel ---------- */
+.agent-panel{background:linear-gradient(135deg,#F5F3FF 0%,#EFF6FF 100%);border:1px solid #C7D2FE;border-radius:var(--radius-lg);padding:0;overflow:hidden;margin-bottom:16px}
+.agent-panel-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid #C7D2FE;background:rgba(255,255,255,.6)}
+.agent-panel-hd .t{font-size:13px;font-weight:800;display:flex;align-items:center;gap:8px}
+.agent-panel-body{padding:16px}
+.ag-block{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px}
+.ag-block-hd{font-size:10.5px;font-weight:800;color:var(--purple);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
+.ag-block p{font-size:12.5px;color:var(--text-2);line-height:1.6}
+.hyp{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px dashed var(--border)}
+.hyp:last-child{border-bottom:0}
+.hyp-rank{width:22px;height:22px;border-radius:6px;background:var(--purple-light);color:var(--purple);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hyp-body{flex:1}
+.hyp-title{font-size:12.5px;font-weight:700;color:var(--text-1);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hyp-desc{font-size:12px;color:var(--text-2);margin-top:3px;line-height:1.55}
+.conf-bar{width:70px;height:5px;background:var(--bg-hover);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle}
+.conf-bar i{display:block;height:100%;background:var(--purple);border-radius:3px}
+.ev-item{display:flex;gap:8px;padding:6px 0;font-size:12px;color:var(--text-2);border-bottom:1px dashed var(--border);align-items:flex-start}
+.ev-item:last-child{border-bottom:0}
+.ev-tag{font-size:9.5px;font-weight:800;padding:2px 6px;border-radius:4px;background:#E0E7FF;color:#3730A3;flex-shrink:0;margin-top:1px;letter-spacing:.03em}
+.ev-tag.trace{background:#FCE7F3;color:#9D174D}
+.ev-tag.src{background:#FEF3C7;color:#92400E}
+.ev-tag.usage{background:#DBEAFE;color:#1E40AF}
+.na-item{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;margin-bottom:7px}
+.na-copy{font-size:12px;color:var(--text-2)}
+.na-copy b{display:block;color:var(--text-1);margin-bottom:2px;font-size:12.5px}
+
+/* ---------- Feature card (3 modes) ---------- */
+.card-modes{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.fcard{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm)}
+.fcard-hd{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.fcard-name{font-size:14.5px;font-weight:800;color:var(--text-1)}
+.fcard-code{font-size:11.5px;color:var(--text-3);font-family:"SF Mono",monospace;margin-top:2px}
+.fcard-body{padding:14px 16px}
+.fcard-sec{padding:9px 0;border-bottom:1px dashed var(--border)}
+.fcard-sec:last-child{border-bottom:0}
+.fcard-k{font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;font-weight:700;margin-bottom:4px}
+.fcard-v{font-size:12.5px;color:var(--text-1);line-height:1.55}
+.fcard-v.muted{color:var(--text-2)}
+.fcard-ft{padding:11px 16px;border-top:1px solid var(--border);background:var(--bg-soft);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;align-items:start}
+.samples{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.samples .s{font-size:10.5px;font-family:"SF Mono",monospace;background:var(--bg-soft);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--text-2)}
+
+/* ---------- Fit labels ---------- */
+.fit{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap}
+.fit-full{background:var(--success-light);color:#065F46}
+.fit-partial{background:#DBEAFE;color:#1E40AF}
+.fit-fallback{background:var(--warn-light);color:#92400E}
+.fit-derived{background:var(--purple-light);color:#5B21B6}
+.fit-no{background:var(--danger-light);color:#991B1B}
+
+/* ---------- Score bar ---------- */
+.score-wrap{display:flex;align-items:center;gap:8px}
+.score-bar{width:96px;height:6px;background:var(--bg-hover);border-radius:3px;overflow:hidden}
+.score-bar i{display:block;height:100%;background:var(--primary);border-radius:3px}
+.score-bar.good i{background:var(--success)}
+.score-bar.mid i{background:var(--warn)}
+.score-num{font-size:12px;font-weight:700;font-family:"SF Mono",monospace}
+.formula{background:#0F172A;color:#E2E8F0;border-radius:var(--radius);padding:12px 14px;font-family:"SF Mono",Consolas,monospace;font-size:11.5px;line-height:1.8;overflow-x:auto}
+.formula .w{color:#7DD3FC}.formula .f{color:#FCD34D}.formula .neg{color:#FCA5A5}
+.contrib{display:grid;grid-template-columns:170px 1fr 54px;gap:8px;align-items:center;font-size:11.5px;padding:4px 0}
+.contrib-bar{height:9px;background:var(--bg-hover);border-radius:3px;overflow:hidden}
+.contrib-bar i{display:block;height:100%;background:var(--primary);border-radius:3px}
+.contrib-bar.neg i{background:var(--danger)}
+
+/* ---------- Diff table ---------- */
+.diff-tb{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
+.diff-tb th{padding:7px 10px;font-size:10.5px}
+.diff-tb td{padding:8px 10px;font-size:12px}
+.diff-tb td.same{color:var(--success);font-weight:600}
+.diff-tb td.diffv{color:var(--warn);font-weight:600}
+.diff-tb td.bad{color:var(--danger);font-weight:600}
+
+/* ---------- Proposal ---------- */
+.prop-grid{display:grid;grid-template-columns:200px 1fr;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.prop-k{background:var(--bg-soft);padding:11px 14px;font-size:11.5px;font-weight:700;color:var(--text-2);border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:6px}
+.prop-k .n{color:var(--text-4);font-family:"SF Mono",monospace;font-size:10.5px}
+.prop-v{padding:11px 14px;font-size:12.5px;color:var(--text-1);border-bottom:1px solid var(--border);line-height:1.6}
+.prop-grid > div:nth-last-child(-n+2){border-bottom:0}
+.gate{background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--radius);padding:14px;margin-top:14px}
+.gate-hd{font-size:12.5px;font-weight:800;color:#92400E;margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.gate-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.gd{border:1px solid var(--border);border-left:3px solid var(--warn);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px;background:#fff}
+.gd.fired{border-left-color:var(--danger);background:#FEF2F2}
+.gd-code{font-size:11.5px;font-weight:800;font-family:"SF Mono",monospace;color:var(--text-1);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.gd-row{font-size:11.5px;color:var(--text-2);margin-top:5px;display:flex;gap:6px}
+.gd-row b{color:var(--text-3);font-weight:700;flex-shrink:0;min-width:52px}
+
+/* ---------- State machine ---------- */
+.sm{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:4px 0}
+.sm-node{padding:6px 11px;border-radius:999px;border:1px solid var(--border);background:#fff;
+  font-size:11px;font-weight:700;font-family:"SF Mono",monospace;color:var(--text-2);white-space:nowrap}
+.sm-node.done{background:var(--success-light);border-color:#6EE7B7;color:#065F46}
+.sm-node.cur{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 0 0 3px rgba(59,130,246,.18)}
+.sm-node.term{background:var(--bg-soft);color:var(--text-4)}
+.sm-arrow{color:var(--text-4);font-size:13px}
+.sm-title{font-size:12px;font-weight:800;color:var(--text-1);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+
+/* ---------- Timeline ---------- */
+.tl{position:relative;padding-left:22px}
+.tl::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:var(--border)}
+.tl-item{position:relative;padding:0 0 16px}
+.tl-item:last-child{padding-bottom:0}
+.tl-dot{position:absolute;left:-20px;top:3px;width:11px;height:11px;border-radius:50%;background:#fff;border:2px solid var(--border-strong)}
+.tl-item.done .tl-dot{background:var(--success);border-color:var(--success)}
+.tl-item.cur .tl-dot{background:var(--primary);border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,130,246,.2)}
+.tl-t{font-size:12.5px;font-weight:700;color:var(--text-1)}
+.tl-m{font-size:11.5px;color:var(--text-3);margin-top:2px}
+
+/* ---------- Trace ---------- */
+.trace{font-family:"SF Mono",Consolas,monospace;font-size:11.5px;background:#0F172A;color:#CBD5E1;border-radius:var(--radius);padding:12px 14px;overflow-x:auto;line-height:1.75}
+.trace .k{color:#7DD3FC}.trace .s{color:#86EFAC}.trace .n{color:#FCD34D}.trace .bad{color:#FCA5A5;font-weight:700}
+
+/* ---------- Skills ---------- */
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.skill{border:1px solid var(--border);border-radius:var(--radius-lg);background:#fff;padding:14px}
+.skill-hd{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;margin-bottom:6px}
+.skill-ic{width:24px;height:24px;border-radius:7px;background:var(--purple-light);color:var(--purple);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0}
+.skill-row{font-size:11.5px;color:var(--text-2);padding:4px 0;display:flex;gap:6px}
+.skill-row b{color:var(--text-3);min-width:46px;flex-shrink:0;font-weight:700}
+
+/* ---------- Note list ---------- */
+.notes li{list-style:none;padding:8px 0 8px 20px;border-bottom:1px dashed var(--border);font-size:12.5px;color:var(--text-2);position:relative;line-height:1.6}
+.notes li:last-child{border-bottom:0}
+.notes li::before{content:"▸";position:absolute;left:4px;top:8px;color:var(--primary);font-weight:700}
+.notes li b{color:var(--text-1)}
+.callout{border-radius:var(--radius);padding:12px 14px;font-size:12.5px;line-height:1.6;margin-bottom:12px}
+.callout.info{background:var(--primary-light);border:1px solid #BFDBFE;color:#1E40AF}
+.callout.warn{background:#FFFBEB;border:1px solid #FDE68A;color:#78350F}
+.callout.ok{background:var(--success-light);border:1px solid #6EE7B7;color:#065F46}
+
+/* ---------- Ask AI widget ---------- */
+.fab{position:fixed;right:24px;bottom:24px;z-index:200;padding:12px 18px;background:var(--text-1);color:#fff;
+  border-radius:24px;font-weight:600;font-size:13px;box-shadow:var(--shadow-lg);cursor:pointer;display:flex;align-items:center;gap:8px}
+.fab:hover{background:#000}
+.fab-dot{width:8px;height:8px;background:var(--success);border-radius:50%;box-shadow:0 0 0 3px rgba(16,185,129,.25)}
+.qa-panel{position:fixed;right:24px;bottom:84px;z-index:200;width:430px;height:580px;background:#fff;
+  border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);display:none;flex-direction:column;overflow:hidden}
+.qa-panel.open{display:flex}
+.qa-head{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.qa-head-title{font-weight:700;font-size:14px}
+.qa-head-sub{font-size:11px;color:var(--text-3);margin-top:2px}
+.qa-body{flex:1;overflow-y:auto;padding:14px}
+.qa-suggest-hint{font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:7px;font-weight:700}
+.qa-suggest-card{padding:9px 12px;background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--radius);
+  margin-bottom:6px;font-size:12.5px;color:var(--text-2);cursor:pointer;transition:all .15s}
+.qa-suggest-card:hover{background:var(--primary-light);border-color:var(--primary);color:var(--primary)}
+.bubble{margin-bottom:12px;max-width:92%}
+.bubble.me{margin-left:auto;background:var(--primary);color:#fff;border-radius:12px 12px 2px 12px;padding:9px 12px;font-size:12.5px}
+.bubble.ai{background:var(--bg-soft);border:1px solid var(--border);border-radius:12px 12px 12px 2px;padding:11px 13px;font-size:12.5px;color:var(--text-2);line-height:1.6}
+.bubble.ai b{color:var(--text-1)}
+.qa-foot{border-top:1px solid var(--border);padding:10px 12px;display:flex;gap:8px}
+.qa-foot input{flex:1;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;font-size:12.5px;font-family:inherit}
+.qa-foot input:focus{outline:none;border-color:var(--primary)}
+
+/* ---------- Modal ---------- */
+.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.48);z-index:300;display:none;align-items:flex-start;justify-content:center;padding:24px 20px;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal{width:960px;max-width:100%;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.32);overflow:hidden;margin:auto}
+.modal-hd{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);background:#F8FAFC;gap:12px}
+.modal-title{font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px}
+.modal-sub{font-size:12px;color:var(--text-3);margin-top:3px}
+.modal-close{width:28px;height:28px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text-3);font-weight:800;cursor:pointer;flex-shrink:0}
+.modal-body{padding:18px 20px;max-height:calc(100vh - 200px);overflow-y:auto}
+.modal-ft{padding:12px 20px;border-top:1px solid var(--border);background:#F8FAFC;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.modal-ft .hint{font-size:11px;color:var(--text-3)}
+
+/* ---------- Misc ---------- */
+.row-gap{display:flex;gap:16px;align-items:flex-start}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;align-items:start}
+.side-col{display:grid;grid-template-columns:1fr 400px;gap:16px;align-items:start}
+@media(max-width:1200px){.kpi-row{grid-template-columns:repeat(3,1fr)}.side-col,.two-col,.three-col{grid-template-columns:1fr}}
+.tag-inline{font-size:10.5px;font-weight:700;color:var(--text-3);background:var(--bg-soft);border:1px solid var(--border);border-radius:4px;padding:1px 5px}
+.hr{height:1px;background:var(--border);margin:16px 0}
+</style>
+</head>
+<body class="lang-en">
+
+<div class="topbar">
+  <div class="brand">Feature Platform<span class="brand-sub">Agentic Workflow v0.1</span></div>
+  <div class="tabs">
+    <div class="tab active" data-page="f1"><span class="i-cn">F1 特征监控看板</span><span class="i-en">F1 Monitoring Dashboard</span></div>
+    <div class="tab" data-page="f2"><span class="i-cn">F2 特征下钻</span><span class="i-en">F2 Feature Drilldown</span></div>
+    <div class="tab" data-page="f3"><span class="i-cn">F3 特征卡片</span><span class="i-en">F3 Feature Card</span></div>
+    <div class="tab" data-page="f4"><span class="i-cn">F4 替代发现</span><span class="i-en">F4 Replacement Discovery</span></div>
+    <div class="tab" data-page="f5"><span class="i-cn">F5 IDSP 提案</span><span class="i-en">F5 IDSP Proposal</span></div>
+    <div class="tab" data-page="f6"><span class="i-cn">F6 血缘与派生</span><span class="i-en">F6 Lineage & Derived</span></div>
+    <div class="tab" data-page="f7"><span class="i-cn">F7 设计说明</span><span class="i-en">F7 Design Notes</span></div>
+  </div>
+  <button class="btn btn-sm" id="lang-toggle" onclick="toggleLang()" style="margin-right:8px" title="Switch language">中文</button>
+  <div class="env-badge">PROTOTYPE</div>
+</div>
+
+<!-- ==================== F1 · Monitoring Dashboard ==================== -->
+<div class="page active" id="page-f1">
+  <div class="page-header">
+    <div>
+      <div class="page-title"><span class="i-cn">特征监控看板</span><span class="i-en">Feature Monitoring Dashboard</span></div>
+      <div class="page-sub">
+        <span class="i-cn">全局特征健康度总览。回答三个问题：哪些特征在出问题、影响面有多大、下一步该看什么。异常从这里进入「诊断 → 替代 → IDSP 提案」链路。</span>
+        <span class="i-en">Global feature health overview. It answers three questions: which features are breaking, how wide the blast radius is, and what to look at next. Anomalies enter the diagnosis → replacement → IDSP proposal chain from here.</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select class="select" style="width:150px" onchange="void 0">
+        <option>Last 24 hours</option><option>Last 7 days</option><option>Last 30 days</option>
+      </select>
+      <button class="btn btn-primary" onclick="openAgent('overview')">
+        <span class="i-cn">Agent 全局诊断</span><span class="i-en">Agent global diagnosis</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi" onclick="kpiPick(this,'all')">
+      <div class="kpi-label"><span class="dot blue"></span><span class="i-cn">监控中的特征</span><span class="i-en">Total monitored features</span></div>
+      <div class="kpi-value">1,284</div>
+      <div class="kpi-delta flat"><span class="i-cn">较昨日 +12</span><span class="i-en">+12 vs. yesterday</span></div>
+    </div>
+    <div class="kpi" onclick="kpiPick(this,'healthy')">
+      <div class="kpi-label"><span class="dot green"></span><span class="i-cn">健康</span><span class="i-en">Healthy</span></div>
+      <div class="kpi-value">1,203<span class="unit">93.7%</span></div>
+      <div class="kpi-delta down"><span class="i-cn">-9 较昨日</span><span class="i-en">-9 vs. yesterday</span></div>
+    </div>
+    <div class="kpi" onclick="kpiPick(this,'warning')">
+      <div class="kpi-label"><span class="dot amber"></span><span class="i-cn">告警</span><span class="i-en">Warning</span></div>
+      <div class="kpi-value">67</div>
+      <div class="kpi-delta up"><span class="i-cn">+6 较昨日</span><span class="i-en">+6 vs. yesterday</span></div>
+    </div>
+    <div class="kpi on" onclick="kpiPick(this,'critical')">
+      <div class="kpi-label"><span class="dot red"></span><span class="i-cn">严重</span><span class="i-en">Critical</span></div>
+      <div class="kpi-value">14</div>
+      <div class="kpi-delta up"><span class="i-cn">+3 较昨日</span><span class="i-en">+3 vs. yesterday</span></div>
+    </div>
+    <div class="kpi" onclick="kpiPick(this,'strategy')">
+      <div class="kpi-label"><span class="dot purple"></span><span class="i-cn">受影响策略</span><span class="i-en">Impacted strategies</span></div>
+      <div class="kpi-value">38</div>
+      <div class="kpi-delta up"><span class="i-cn">其中 12 条为 EEA 强制策略</span><span class="i-en">12 of them EEA enforcement</span></div>
+    </div>
+    <div class="kpi" onclick="kpiPick(this,'source')">
+      <div class="kpi-label"><span class="dot amber"></span><span class="i-cn">数据源事件</span><span class="i-en">Data source incidents</span></div>
+      <div class="kpi-value">3</div>
+      <div class="kpi-delta up"><span class="i-cn">1 条延迟中</span><span class="i-en">1 currently delayed</span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <span class="i-cn">异常热力图</span><span class="i-en">Anomaly heatmap</span>
+        <span class="panel-hint"><span class="i-cn">颜色 = 健康分 / 异常严重度</span><span class="i-en">Colour = health score / anomaly severity</span></span>
+      </div>
+      <div class="hm-controls">
+        <span style="font-size:11px;color:var(--text-3);font-weight:700">X</span>
+        <div class="seg" id="hm-x">
+          <div class="on" onclick="hmAxis('x','feature',this)"><span class="i-cn">特征</span><span class="i-en">Feature</span></div>
+          <div onclick="hmAxis('x','domain',this)"><span class="i-cn">业务域</span><span class="i-en">Business domain</span></div>
+          <div onclick="hmAxis('x','source',this)"><span class="i-cn">数据源</span><span class="i-en">Data source</span></div>
+        </div>
+        <span style="font-size:11px;color:var(--text-3);font-weight:700">Y</span>
+        <div class="seg" id="hm-y">
+          <div class="on" onclick="hmAxis('y','region',this)"><span class="i-cn">地区</span><span class="i-en">Region</span></div>
+          <div onclick="hmAxis('y','entity',this)"><span class="i-cn">实体</span><span class="i-en">Entity</span></div>
+          <div onclick="hmAxis('y','time',this)"><span class="i-cn">时间桶</span><span class="i-en">Time bucket</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="hm-wrap"><table class="hm" id="hm-table"></table></div>
+      <div class="hm-legend">
+        <span class="i-cn">健康分</span><span class="i-en">Health score</span>
+        <i class="hm-h1"></i><span>0–39</span>
+        <i class="hm-h2"></i><span>40–59</span>
+        <i class="hm-h3"></i><span>60–74</span>
+        <i class="hm-h4"></i><span>75–89</span>
+        <i class="hm-h5"></i><span>90–100</span>
+        <i class="hm-h0"></i><span class="i-cn">无覆盖</span><span class="i-en">No coverage</span>
+        <span style="margin-left:auto;color:var(--text-4)"><span class="i-cn">点击任一格 → 下钻</span><span class="i-en">Click any cell to drill down</span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div class="left">
+        <b style="color:var(--text-1)"><span class="i-cn">异常列表</span><span class="i-en">Anomaly list</span></b>
+        <span id="anom-count">6 <span class="i-cn">条</span><span class="i-en">items</span></span>
+        <span class="chip red" id="anom-filter" style="display:none"></span>
+      </div>
+      <div class="right">
+        <select class="select btn-sm" style="width:auto;padding:5px 26px 5px 10px" onchange="filterSeverity(this.value)">
+          <option value="all">All severity</option><option value="critical">Critical only</option><option value="warning">Warning only</option>
+        </select>
+        <button class="btn btn-sm" onclick="alert('Prototype: export CSV')"><span class="i-cn">导出</span><span class="i-en">Export</span></button>
+      </div>
+    </div>
+    <div class="scroll-x">
+      <table>
+        <thead><tr>
+          <th>#</th>
+          <th><span class="i-cn">特征</span><span class="i-en">Feature</span></th>
+          <th><span class="i-cn">异常类型</span><span class="i-en">Anomaly type</span></th>
+          <th><span class="i-cn">严重度</span><span class="i-en">Severity</span></th>
+          <th><span class="i-cn">影响地区</span><span class="i-en">Impacted region</span></th>
+          <th><span class="i-cn">受影响策略</span><span class="i-en">Impacted strategies</span></th>
+          <th><span class="i-cn">开始时间</span><span class="i-en">Start time</span></th>
+          <th><span class="i-cn">状态</span><span class="i-en">State</span></th>
+          <th><span class="i-cn">操作</span><span class="i-en">Action</span></th>
+        </tr></thead>
+        <tbody id="anom-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <span class="i-cn"><b>设计口径：</b>看板不承担「解释为什么」的职责，只负责把异常按影响面排序并送入下一步。所有“为什么”都发生在 F2 下钻页与 Agent 诊断面板。</span>
+    <span class="i-en"><b>Scope note:</b> the dashboard does not try to explain <i>why</i>. It ranks anomalies by blast radius and hands them off. Every "why" lives in the F2 drilldown and the Agent diagnosis panel.</span>
+  </div>
+</div>
+
+<!-- ==================== F2 · Feature Drilldown ==================== -->
+<div class="page" id="page-f2">
+  <div class="crumb">
+    <span class="lk" onclick="switchPage('f1')"><span class="i-cn">特征监控看板</span><span class="i-en">Monitoring Dashboard</span></span>
+    <span class="sep">/</span><span class="i-cn">异常下钻</span><span class="i-en">Anomaly drilldown</span>
+    <span class="sep">/</span><span class="mono">room_type_feature</span>
+  </div>
+
+  <!-- 1. Header -->
+  <div class="panel">
+    <div class="panel-body" style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div style="font-size:20px;font-weight:800">room_type_feature</div>
+          <span class="chip red">CRITICAL</span>
+          <span class="chip purple">CATEGORIZATION</span>
+          <span class="chip gray">ENUM · 6 values</span>
+        </div>
+        <div style="color:var(--text-3);font-size:12.5px;margin-top:5px">
+          <span class="i-cn">直播间房间类型 · 实体 room · 数据源 room_meta_service · 负责人 Yueming Gao</span>
+          <span class="i-en">Live room type · entity <b>room</b> · source <b>room_meta_service</b> · owner Yueming Gao</span>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text-3)">
+          <span><span class="i-cn">健康分</span><span class="i-en">Health score</span> <b style="color:var(--danger);font-size:14px">31</b> <span style="color:var(--text-4)">/100</span></span>
+          <span><span class="i-cn">受影响策略</span><span class="i-en">Impacted strategies</span> <b style="color:var(--text-1)">12</b></span>
+          <span><span class="i-cn">受影响地区</span><span class="i-en">Impacted regions</span> <b style="color:var(--text-1)">EEA</b></span>
+          <span><span class="i-cn">持续</span><span class="i-en">Duration</span> <b style="color:var(--text-1)">7h 42m</b></span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="switchPage('f3')"><span class="i-cn">查看特征卡片</span><span class="i-en">View feature card</span></button>
+        <button class="btn" onclick="switchPage('f4')"><span class="i-cn">寻找替代</span><span class="i-en">Find replacement</span></button>
+        <button class="btn btn-primary" onclick="openAgent('diagnose')"><span class="i-cn">Agent 诊断</span><span class="i-en">Agent diagnosis</span></button>
+      </div>
+    </div>
+    <div class="panel-body" style="border-top:1px solid var(--border);padding-top:12px">
+      <div class="sm-title"><span class="i-cn">异常状态机</span><span class="i-en">Anomaly state</span>
+        <span class="panel-hint"><span class="i-cn">当前停在 ROOT_CAUSE_HYPOTHESIS，等待人工进入替代搜索</span><span class="i-en">Currently at ROOT_CAUSE_HYPOTHESIS, waiting for a human to start replacement search</span></span></div>
+      <div class="sm">
+        <span class="sm-node done">DETECTED</span><span class="sm-arrow">→</span>
+        <span class="sm-node done">DIAGNOSING</span><span class="sm-arrow">→</span>
+        <span class="sm-node cur">ROOT_CAUSE_HYPOTHESIS</span><span class="sm-arrow">→</span>
+        <span class="sm-node">REPLACEMENT_SEARCHING</span><span class="sm-arrow">→</span>
+        <span class="sm-node">PROPOSAL_GENERATED</span><span class="sm-arrow">→</span>
+        <span class="sm-node">HUMAN_REVIEW</span><span class="sm-arrow">→</span>
+        <span class="sm-node">IDSP_DRAFT_CREATED</span><span class="sm-arrow">→</span>
+        <span class="sm-node">VALIDATING</span><span class="sm-arrow">→</span>
+        <span class="sm-node term">ROLLED_OUT</span><span class="sm-arrow">|</span>
+        <span class="sm-node term">ROLLED_BACK</span><span class="sm-arrow">|</span>
+        <span class="sm-node term">CLOSED</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="side-col">
+    <div>
+      <!-- 2. Anomaly summary -->
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">2 · <span class="i-cn">异常摘要</span><span class="i-en">Anomaly summary</span></div>
+          <span class="panel-hint"><span class="i-cn">系统生成，非 Agent 推断</span><span class="i-en">System-generated, not an Agent inference</span></span></div>
+        <div class="panel-body">
+          <div class="callout warn" style="margin-bottom:14px">
+            <span class="i-cn"><b>枚举分布漂移 + 未知值上升。</b> 07/29 21:10 起，EEA 流量中 <code>001（个人直播间）</code> 的占比由 40% 跌至 5%，同时 <code>unknown</code> 由 0.6% 升至 33.4%。取值集合本身没有变化，变的是分布。</span>
+            <span class="i-en"><b>Enum distribution shift plus rising unknown values.</b> Since 07/29 21:10, the share of <code>001 (personal room)</code> in EEA traffic fell from 40% to 5%, while <code>unknown</code> rose from 0.6% to 33.4%. The value set itself did not change — the distribution did.</span>
+          </div>
+          <div class="dist">
+            <div class="dist-row hd">
+              <span><span class="i-cn">枚举值</span><span class="i-en">Enum value</span></span>
+              <span><span class="i-cn">当前分布（EEA）</span><span class="i-en">Current share (EEA)</span></span>
+              <span style="text-align:right"><span class="i-cn">基线</span><span class="i-en">Baseline</span></span>
+              <span style="text-align:right"><span class="i-cn">当前</span><span class="i-en">Now</span></span>
+            </div>
+            <div class="dist-row"><span><code class="code">001</code> <span class="i-cn">个人直播间</span><span class="i-en">personal room</span></span>
+              <span class="dist-bar"><i style="width:40%"></i><b style="width:5%"></b></span><span class="dist-num">40.0%</span><span class="dist-num drop">5.0%</span></div>
+            <div class="dist-row"><span><code class="code">002</code> <span class="i-cn">PK 房</span><span class="i-en">PK room</span></span>
+              <span class="dist-bar"><i style="width:22%"></i><b style="width:21%"></b></span><span class="dist-num">22.0%</span><span class="dist-num">21.0%</span></div>
+            <div class="dist-row"><span><code class="code">003</code> <span class="i-cn">多人连麦</span><span class="i-en">multi-guest</span></span>
+              <span class="dist-bar"><i style="width:18%"></i><b style="width:19%"></b></span><span class="dist-num">18.0%</span><span class="dist-num">19.0%</span></div>
+            <div class="dist-row"><span><code class="code">004</code> <span class="i-cn">游戏直播</span><span class="i-en">game stream</span></span>
+              <span class="dist-bar"><i style="width:13%"></i><b style="width:14%"></b></span><span class="dist-num">13.0%</span><span class="dist-num">14.0%</span></div>
+            <div class="dist-row"><span><code class="code">005</code> <span class="i-cn">电商直播</span><span class="i-en">commerce stream</span></span>
+              <span class="dist-bar"><i style="width:6.4%"></i><b style="width:7.6%"></b></span><span class="dist-num">6.4%</span><span class="dist-num">7.6%</span></div>
+            <div class="dist-row"><span><code class="code">unknown</code></span>
+              <span class="dist-bar"><i style="width:.6%"></i><b style="width:33.4%"></b></span><span class="dist-num">0.6%</span><span class="dist-num rise">33.4%</span></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px">
+            <div><div class="fcard-k"><span class="i-cn">首次检出</span><span class="i-en">Detected at</span></div><div class="fcard-v">07/29 21:10 UTC</div></div>
+            <div><div class="fcard-k"><span class="i-cn">异常类型</span><span class="i-en">Anomaly type</span></div><div class="fcard-v">distribution_shift + enum_unseen_value</div></div>
+            <div><div class="fcard-k"><span class="i-cn">范围</span><span class="i-en">Scope</span></div><div class="fcard-v">EEA <span class="tag-inline">region</span></div></div>
+            <div><div class="fcard-k"><span class="i-cn">非 EEA 地区</span><span class="i-en">Non-EEA regions</span></div><div class="fcard-v" style="color:var(--success)"><span class="i-cn">正常</span><span class="i-en">Normal</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Metric breakdown -->
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">3 · <span class="i-cn">指标拆解</span><span class="i-en">Metric breakdown</span></div>
+          <span class="panel-hint"><span class="i-cn">4 类监控指标</span><span class="i-en">4 monitoring metric categories</span></span></div>
+        <div class="panel-body" id="metric-body"></div>
+      </div>
+
+      <!-- 4. Data source status -->
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">4 · <span class="i-cn">数据源状态</span><span class="i-en">Data source status</span></div>
+          <span class="panel-hint"><span class="i-cn">共享同一数据源的特征会同时受影响</span><span class="i-en">Features sharing a source fail together</span></span></div>
+        <div class="scroll-x"><table>
+          <thead><tr>
+            <th><span class="i-cn">数据源</span><span class="i-en">Source</span></th>
+            <th><span class="i-cn">角色</span><span class="i-en">Role</span></th>
+            <th><span class="i-cn">状态</span><span class="i-en">Status</span></th>
+            <th><span class="i-cn">最近同步</span><span class="i-en">Last sync</span></th>
+            <th><span class="i-cn">延迟</span><span class="i-en">Delay</span></th>
+            <th><span class="i-cn">共享此源的特征</span><span class="i-en">Features on this source</span></th>
+          </tr></thead>
+          <tbody>
+            <tr><td><span class="code">room_meta_service</span></td>
+              <td><span class="i-cn">主源</span><span class="i-en">Primary</span></td>
+              <td><span class="chip amber">DELAYED</span></td><td class="mono" style="font-size:12px">07/29 20:55</td>
+              <td style="color:var(--danger);font-weight:700">+ 4h 20m</td>
+              <td>18 <button class="btn btn-ghost btn-sm" onclick="switchPage('f6')"><span class="i-cn">查看</span><span class="i-en">View</span></button></td></tr>
+            <tr><td><span class="code">room_tag_pipeline</span></td>
+              <td><span class="i-cn">枚举映射</span><span class="i-en">Enum mapping</span></td>
+              <td><span class="chip amber">SCHEMA_CHANGED</span></td><td class="mono" style="font-size:12px">07/29 21:02</td>
+              <td style="color:var(--text-3)">—</td><td>7</td></tr>
+            <tr><td><span class="code">content_model_svc</span></td>
+              <td><span class="i-cn">旁路</span><span class="i-en">Side input</span></td>
+              <td><span class="chip green">HEALTHY</span></td><td class="mono" style="font-size:12px">07/30 01:12</td>
+              <td style="color:var(--text-3)">—</td><td>24</td></tr>
+          </tbody>
+        </table></div>
+        <div class="panel-body" style="border-top:1px solid var(--border)">
+          <div class="callout warn" style="margin-bottom:0">
+            <span class="i-cn"><b>SOURCE_SHARED_RISK 预警：</b>候选替代特征若同样来自 <code>room_meta_service</code>，会继承同一故障，不应作为替代提案。</span>
+            <span class="i-en"><b>SOURCE_SHARED_RISK warning:</b> a candidate that also reads from <code>room_meta_service</code> inherits the same failure and must not be proposed as a replacement.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Strategy usage -->
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">5 · <span class="i-cn">策略消费情况</span><span class="i-en">Strategy usage</span></div>
+          <span class="panel-hint"><span class="i-cn">来自 IDSP · 只读</span><span class="i-en">From IDSP · read-only</span></span></div>
+        <div class="scroll-x"><table>
+          <thead><tr>
+            <th><span class="i-cn">策略</span><span class="i-en">Strategy</span></th>
+            <th><span class="i-cn">使用方式</span><span class="i-en">How it is used</span></th>
+            <th><span class="i-cn">地区</span><span class="i-en">Region</span></th>
+            <th>hit_rate</th><th>decision_change</th><th>fallback_rate</th>
+            <th><span class="i-cn">影响</span><span class="i-en">Impact</span></th>
+          </tr></thead>
+          <tbody id="usage-body"></tbody>
+        </table></div>
+        <div class="panel-body" style="border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+          <span style="font-size:12px;color:var(--text-3)"><span class="i-cn">共 12 条策略消费此特征，此处展示影响最大的 5 条。</span><span class="i-en">12 strategies consume this feature; the 5 with the largest impact are shown.</span></span>
+          <button class="btn btn-sm"><span class="i-cn">查看全部 12 条</span><span class="i-en">View all 12</span></button>
+        </div>
+      </div>
+
+      <!-- 6. Trace samples -->
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">6 · <span class="i-cn">Trace 样本</span><span class="i-en">Trace samples</span></div>
+          <span class="panel-hint"><span class="i-cn">Agent 的证据必须能落到具体样本</span><span class="i-en">Agent evidence must land on concrete samples</span></span></div>
+        <div class="panel-body">
+          <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+            <button class="btn btn-sm" style="border-color:var(--primary);color:var(--primary)" onclick="pickTrace(0,this)">unknown <span class="i-cn">样本</span><span class="i-en">sample</span></button>
+            <button class="btn btn-sm" onclick="pickTrace(1,this)"><span class="i-cn">正常样本</span><span class="i-en">Healthy sample</span></button>
+            <button class="btn btn-sm" onclick="pickTrace(2,this)"><span class="i-cn">非 EEA 对照</span><span class="i-en">Non-EEA control</span></button>
+          </div>
+          <div class="trace" id="trace-box"></div>
+          <div style="font-size:11.5px;color:var(--text-3);margin-top:8px">
+            <span class="i-cn">对照 3 条样本可以看出：非 EEA 的同一房间返回 <code>001</code>，EEA 返回 <code>unknown</code>，且 <code>source_ts</code> 比请求时间落后 4 小时以上。</span>
+            <span class="i-en">Across the three samples: the same room returns <code>001</code> outside EEA but <code>unknown</code> inside EEA, and <code>source_ts</code> lags the request by more than four hours.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. Ask AI diagnosis (side rail) -->
+    <div>
+      <div class="agent-panel" style="position:sticky;top:72px">
+        <div class="agent-panel-hd">
+          <div class="t">7 · <span class="i-cn">Agent 诊断</span><span class="i-en">Agent diagnosis</span>
+            <span class="chip purple">SKILL · anomaly_diagnosis</span></div>
+          <button class="btn btn-sm" onclick="openAgent('diagnose')"><span class="i-cn">展开</span><span class="i-en">Expand</span></button>
+        </div>
+        <div class="agent-panel-body">
+          <div class="ag-block">
+            <div class="ag-block-hd"><span><span class="i-cn">诊断结论</span><span class="i-en">Diagnosis summary</span></span></div>
+            <p><span class="i-cn">EEA 流量下 <code>room_type_feature</code> 的枚举分布发生显著漂移，主因指向上游 <code>room_tag_pipeline</code> 的枚举映射变更叠加 <code>room_meta_service</code> 的同步延迟，而非特征逻辑本身的问题。12 条 IDSP 策略的命中率已同步下降。</span>
+            <span class="i-en">Under EEA traffic, <code>room_type_feature</code>'s enum distribution has shifted materially. The likely cause is an enum-mapping change in upstream <code>room_tag_pipeline</code> compounded by a sync delay in <code>room_meta_service</code> — not the feature logic itself. Hit rate has fallen across all 12 consuming IDSP strategies.</span></p>
+          </div>
+          <div class="ag-block">
+            <div class="ag-block-hd"><span><span class="i-cn">根因假设</span><span class="i-en">Root cause hypothesis</span></span>
+              <span style="font-weight:600;color:var(--text-4);font-size:9.5px"><span class="i-cn">按置信度排序</span><span class="i-en">ranked by confidence</span></span></div>
+            <div class="hyp"><div class="hyp-rank">1</div><div class="hyp-body">
+              <div class="hyp-title"><span class="i-cn">枚举映射问题</span><span class="i-en">Enum mapping issue</span>
+                <span class="conf-bar"><i style="width:72%"></i></span><span style="font-size:10.5px;color:var(--text-3);font-weight:700">0.72</span></div>
+              <div class="hyp-desc"><span class="i-cn">上游 07/29 21:02 发生 schema 变更，新标签未落入既有映射表，因此归入 unknown。</span>
+                <span class="i-en">Upstream schema changed at 07/29 21:02; new tags fall outside the existing mapping table and land in unknown.</span></div></div></div>
+            <div class="hyp"><div class="hyp-rank">2</div><div class="hyp-body">
+              <div class="hyp-title"><span class="i-cn">数据源问题</span><span class="i-en">Data source issue</span>
+                <span class="conf-bar"><i style="width:58%"></i></span><span style="font-size:10.5px;color:var(--text-3);font-weight:700">0.58</span></div>
+              <div class="hyp-desc"><span class="i-cn">room_meta_service 延迟 4h20m，部分请求读到空值后降级为 unknown。</span>
+                <span class="i-en">room_meta_service is 4h20m behind; some requests read empty and degrade to unknown.</span></div></div></div>
+            <div class="hyp"><div class="hyp-rank">3</div><div class="hyp-body">
+              <div class="hyp-title"><span class="i-cn">流量结构变化</span><span class="i-en">Traffic mix shift</span>
+                <span class="conf-bar"><i style="width:19%"></i></span><span style="font-size:10.5px;color:var(--text-3);font-weight:700">0.19</span></div>
+              <div class="hyp-desc"><span class="i-cn">已基本排除：非 EEA 地区同期分布无变化。</span>
+                <span class="i-en">Largely ruled out: non-EEA regions show no change over the same window.</span></div></div></div>
+          </div>
+          <div class="ag-block">
+            <div class="ag-block-hd"><span><span class="i-cn">证据</span><span class="i-en">Evidence</span></span></div>
+            <div class="ev-item"><span class="ev-tag">METRIC</span><span><code>enum_unseen_value_rate</code> 0.6% → 33.4%<span class="i-cn">（EEA，07/29 21:10 起）</span><span class="i-en"> (EEA, since 07/29 21:10)</span></span></div>
+            <div class="ev-item"><span class="ev-tag src">SOURCE</span><span><code>room_tag_pipeline</code> SCHEMA_CHANGED @ 07/29 21:02 · <code>room_meta_service</code> <span class="i-cn">延迟</span><span class="i-en">delay</span> +4h20m</span></div>
+            <div class="ev-item"><span class="ev-tag trace">TRACE</span><span><span class="i-cn">样本 </span><span class="i-en">Sample </span><code>trace_8f21c</code>: <span class="i-cn">同一 room_id 在非 EEA 返回 001、EEA 返回 unknown</span><span class="i-en">same room_id returns 001 outside EEA and unknown inside EEA</span></span></div>
+            <div class="ev-item"><span class="ev-tag usage">USAGE</span><span><span class="i-cn">12 条策略 hit_rate 中位数由 0.81 降至 0.46</span><span class="i-en">Median hit_rate across 12 strategies fell 0.81 → 0.46</span></span></div>
+          </div>
+          <div class="ag-block">
+            <div class="ag-block-hd"><span><span class="i-cn">下一步动作</span><span class="i-en">Next actions</span></span></div>
+            <div class="na-item"><div class="na-copy"><b><span class="i-cn">寻找替代特征</span><span class="i-en">Find replacement features</span></b>
+              <span class="i-cn">按实体 / 地区覆盖 / 数据源隔离排序</span><span class="i-en">Ranked by entity, region coverage and source isolation</span></div>
+              <button class="btn btn-sm btn-primary" onclick="switchPage('f4')"><span class="i-cn">开始</span><span class="i-en">Start</span></button></div>
+            <div class="na-item"><div class="na-copy"><b><span class="i-cn">通知上游 owner</span><span class="i-en">Notify upstream owner</span></b>
+              <span class="i-cn">room_tag_pipeline 枚举映射变更</span><span class="i-en">room_tag_pipeline enum mapping change</span></div>
+              <button class="btn btn-sm"><span class="i-cn">草拟</span><span class="i-en">Draft</span></button></div>
+            <div class="na-item"><div class="na-copy"><b><span class="i-cn">EEA 策略临时降级</span><span class="i-en">Temporarily soften EEA strategies</span></b>
+              <span class="i-cn">需人工确认，Agent 不直接改 IDSP</span><span class="i-en">Human confirmation required; the Agent never writes IDSP directly</span></div>
+              <button class="btn btn-sm"><span class="i-cn">查看</span><span class="i-en">Review</span></button></div>
+          </div>
+          <div style="font-size:11px;color:var(--text-3);line-height:1.55">
+            <span class="i-cn">Agent 的每一条结论都必须绑定证据来源（指标 / trace / 数据源状态 / 策略消费）。没有证据的假设不展示。</span>
+            <span class="i-en">Every Agent conclusion is bound to an evidence source (metric, trace, data source status, strategy usage). Hypotheses without evidence are not shown.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== F3 · Enhanced Feature Card ==================== -->
+<div class="page" id="page-f3">
+  <div class="page-header">
+    <div>
+      <div class="page-title"><span class="i-cn">增强特征卡片</span><span class="i-en">Enhanced Feature Card</span></div>
+      <div class="page-sub">
+        <span class="i-cn">同一个特征，在三种场景下呈现三套字段。卡片不再只是「特征说明」，而是一张<b>决策卡</b>——看完就能决定下一步做什么。</span>
+        <span class="i-en">One feature, three field sets for three situations. The card is no longer a description — it is a <b>decision card</b>: after reading it you know what to do next.</span>
+      </div>
+    </div>
+    <div class="card-modes">
+      <div class="seg" id="card-mode">
+        <div class="on" onclick="cardMode('discovery',this)"><span class="i-cn">发现态</span><span class="i-en">Discovery</span></div>
+        <div onclick="cardMode('diagnosis',this)"><span class="i-cn">诊断态</span><span class="i-en">Diagnosis</span></div>
+        <div onclick="cardMode('replacement',this)"><span class="i-cn">替代态</span><span class="i-en">Replacement</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout info" id="mode-note"></div>
+
+  <div class="two-col">
+    <div id="card-main"></div>
+    <div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><span class="i-cn">三种卡片形态的字段对照</span><span class="i-en">Field contract across the three modes</span></div></div>
+        <div class="scroll-x"><table class="diff-tb">
+          <thead><tr><th><span class="i-cn">字段</span><span class="i-en">Field</span></th><th>Discovery</th><th>Diagnosis</th><th>Replacement</th></tr></thead>
+          <tbody>
+            <tr><td><span class="i-cn">特征名 / code</span><span class="i-en">Feature name / code</span></td><td class="same">●</td><td class="same">●</td><td class="same">●</td></tr>
+            <tr><td><span class="i-cn">业务含义</span><span class="i-en">Business meaning</span></td><td class="same">●</td><td class="same">●</td><td class="same">●</td></tr>
+            <tr><td><span class="i-cn">为什么被匹配到</span><span class="i-en">Why matched</span></td><td class="same">●</td><td>—</td><td class="same">●</td></tr>
+            <tr><td><span class="i-cn">适配标签</span><span class="i-en">Fit label</span></td><td class="same">●</td><td>—</td><td class="same">●</td></tr>
+            <tr><td><span class="i-cn">当前异常</span><span class="i-en">Current anomaly</span></td><td>—</td><td class="same">●</td><td class="diffv">◐</td></tr>
+            <tr><td><span class="i-cn">IDSP 使用情况</span><span class="i-en">IDSP usage</span></td><td class="diffv">◐</td><td class="same">●</td><td class="same">●</td></tr>
+            <tr><td><span class="i-cn">与原特征的差异</span><span class="i-en">Difference vs. original</span></td><td>—</td><td>—</td><td class="same">●</td></tr>
+            <tr><td><span class="i-cn">Trace / 指标</span><span class="i-en">Trace / metrics</span></td><td>—</td><td class="same">●</td><td class="diffv">◐</td></tr>
+            <tr><td><span class="i-cn">验证方式</span><span class="i-en">Validation</span></td><td>—</td><td>—</td><td class="same">●</td></tr>
+            <tr><td><span class="i-cn">风险与限制</span><span class="i-en">Risk / limitation</span></td><td class="same">●</td><td class="same">●</td><td class="same">●</td></tr>
+            <tr><td><span class="i-cn">输出样例</span><span class="i-en">Output samples</span></td><td class="same">●</td><td class="same">●</td><td class="same">●</td></tr>
+            <tr><td><span class="i-cn">主操作</span><span class="i-en">Primary action</span></td><td><span class="i-cn">查看详情</span><span class="i-en">View detail</span></td><td><span class="i-cn">找替代</span><span class="i-en">Find replacement</span></td><td><span class="i-cn">加入提案</span><span class="i-en">Add to proposal</span></td></tr>
+          </tbody>
+        </table></div>
+        <div class="panel-body" style="border-top:1px solid var(--border);font-size:11.5px;color:var(--text-3)">
+          ● <span class="i-cn">必选</span><span class="i-en">required</span> &nbsp;&nbsp; ◐ <span class="i-cn">有则展示</span><span class="i-en">shown if available</span> &nbsp;&nbsp; — <span class="i-cn">不展示</span><span class="i-en">not shown</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><span class="i-cn">五档适配标签</span><span class="i-en">Five fit labels</span></div>
+          <span class="panel-hint"><span class="i-cn">每档对应一条 IDSP 交接规则</span><span class="i-en">Each maps to one IDSP handoff rule</span></span></div>
+        <div class="panel-body">
+          <div style="display:grid;gap:9px">
+            <div style="display:flex;gap:10px;align-items:flex-start"><span class="fit fit-full"><span class="i-cn">完全替代</span><span class="i-en">Full substitute</span></span>
+              <span style="font-size:12px;color:var(--text-2)"><span class="i-cn">口径与取值可一一对应，可直接生成策略变更提案。</span><span class="i-en">Definition and value space map one-to-one; a strategy change proposal can be generated directly.</span></span></div>
+            <div style="display:flex;gap:10px;align-items:flex-start"><span class="fit fit-partial"><span class="i-cn">部分替代</span><span class="i-en">Partial substitute</span></span>
+              <span style="font-size:12px;color:var(--text-2)"><span class="i-cn">仅在限定范围内等价，提案必须写明范围条件。</span><span class="i-en">Equivalent only within a bounded scope; the proposal must state the scope condition.</span></span></div>
+            <div style="display:flex;gap:10px;align-items:flex-start"><span class="fit fit-fallback"><span class="i-cn">仅兜底</span><span class="i-en">Fallback only</span></span>
+              <span style="font-size:12px;color:var(--text-2)"><span class="i-cn">不能进入强制类策略，只能用于降级路径。</span><span class="i-en">Must not enter enforcement strategies; usable only on the degraded path.</span></span></div>
+            <div style="display:flex;gap:10px;align-items:flex-start"><span class="fit fit-derived"><span class="i-cn">可派生</span><span class="i-en">Derived candidate</span></span>
+              <span style="font-size:12px;color:var(--text-2)"><span class="i-cn">需先走特征创建与评估流程，产出新特征后才能进入 IDSP。</span><span class="i-en">Needs the feature creation and evaluation flow first; only the resulting feature can enter IDSP.</span></span></div>
+            <div style="display:flex;gap:10px;align-items:flex-start"><span class="fit fit-no"><span class="i-cn">不适用</span><span class="i-en">Not suitable</span></span>
+              <span style="font-size:12px;color:var(--text-2)"><span class="i-cn">展示但禁止加入提案，并说明被排除的原因。</span><span class="i-en">Shown but blocked from proposals, with the exclusion reason stated.</span></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== F4 · Replacement Discovery ==================== -->
+<div class="page" id="page-f4">
+  <div class="page-header">
+    <div>
+      <div class="page-title"><span class="i-cn">替代特征发现</span><span class="i-en">Replacement Discovery</span></div>
+      <div class="page-sub">
+        <span class="i-cn">从「找一个相似的特征」升级为「找一个在<b>当前故障场景下真的能顶上</b>的特征」。语义相似度只占权重的 25%，其余来自实体、数据源隔离、地区覆盖、策略使用方式与健康度。</span>
+        <span class="i-en">Upgraded from "find a similar feature" to "find one that can <b>actually stand in under this specific failure</b>". Semantic similarity is only 25% of the weight; the rest comes from entity, source isolation, region coverage, strategy usage and health.</span>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="switchPage('f5')"><span class="i-cn">生成 IDSP 提案</span><span class="i-en">Generate IDSP proposal</span></button>
+  </div>
+
+  <div class="callout warn">
+    <span class="i-cn"><b>检索上下文：</b>被替代特征 <code>room_type_feature</code> · 实体 <code>room</code> · 受影响地区 <code>EEA</code> · 故障源 <code>room_meta_service</code>（需隔离）· 消费场景 12 条策略中 8 条为枚举等值判断、4 条为强制类。</span>
+    <span class="i-en"><b>Search context:</b> replacing <code>room_type_feature</code> · entity <code>room</code> · impacted region <code>EEA</code> · failing source <code>room_meta_service</code> (must be isolated) · consumption: of the 12 strategies, 8 use enum equality and 4 are enforcement.</span>
+  </div>
+
+  <div class="side-col">
+    <div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><span class="i-cn">候选排序</span><span class="i-en">Ranked candidates</span>
+          <span class="chip purple">SKILL · replacement_discovery</span></div>
+          <span class="panel-hint">3 <span class="i-cn">个候选 · 1 个已排除</span><span class="i-en">candidates · 1 excluded</span></span></div>
+        <div class="panel-body"><div id="cand-list"></div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><span class="i-cn">口径差异对照</span><span class="i-en">Definition difference</span></div>
+          <span class="panel-hint">room_type_feature vs. room_category_v2</span></div>
+        <div class="scroll-x"><table class="diff-tb">
+          <thead><tr><th><span class="i-cn">维度</span><span class="i-en">Dimension</span></th><th>room_type_feature</th><th>room_category_v2</th><th><span class="i-cn">结论</span><span class="i-en">Verdict</span></th></tr></thead>
+          <tbody>
+            <tr><td><span class="i-cn">实体</span><span class="i-en">Entity</span></td><td>room</td><td>room</td><td class="same"><span class="i-cn">一致</span><span class="i-en">Match</span></td></tr>
+            <tr><td><span class="i-cn">类型</span><span class="i-en">Type</span></td><td><span class="i-cn">枚举 · 6 值</span><span class="i-en">Enum · 6 values</span></td><td><span class="i-cn">枚举 · 8 值</span><span class="i-en">Enum · 8 values</span></td><td class="diffv"><span class="i-cn">需映射</span><span class="i-en">Needs mapping</span></td></tr>
+            <tr><td><span class="i-cn">数据源</span><span class="i-en">Data source</span></td><td>room_meta_service</td><td>room_catalog_v2</td><td class="same"><span class="i-cn">已隔离</span><span class="i-en">Isolated</span></td></tr>
+            <tr><td>EEA <span class="i-cn">覆盖率</span><span class="i-en">coverage</span></td><td>62%</td><td>94%</td><td class="same"><span class="i-cn">更优</span><span class="i-en">Better</span></td></tr>
+            <tr><td><span class="i-cn">更新频率</span><span class="i-en">Freshness</span></td><td><span class="i-cn">近实时</span><span class="i-en">Near real-time</span></td><td>15 min</td><td class="diffv"><span class="i-cn">略滞后</span><span class="i-en">Slightly behind</span></td></tr>
+            <tr><td><span class="i-cn">枚举 001 对应</span><span class="i-en">Mapping for 001</span></td><td><span class="i-cn">个人直播间</span><span class="i-en">personal room</span></td><td>P01 + P02</td><td class="bad"><span class="i-cn">一对多，需人工确认</span><span class="i-en">One-to-many, needs confirmation</span></td></tr>
+            <tr><td><span class="i-cn">健康分</span><span class="i-en">Health score</span></td><td style="color:var(--danger);font-weight:700">31</td><td style="color:var(--success);font-weight:700">96</td><td class="same"><span class="i-cn">可用</span><span class="i-en">Usable</span></td></tr>
+          </tbody>
+        </table></div>
+        <div class="panel-body" style="border-top:1px solid var(--border)">
+          <div class="callout warn" style="margin-bottom:0">
+            <span class="i-cn"><b>为什么是「部分替代」而不是「完全替代」：</b>枚举 <code>001</code> 在新特征中拆成 <code>P01</code> / <code>P02</code> 两个值，属于一对多映射。系统不会自行决定合并规则，必须由人在提案里确认。</span>
+            <span class="i-en"><b>Why "partial" and not "full":</b> enum <code>001</code> splits into <code>P01</code> and <code>P02</code> in the new feature — a one-to-many mapping. The system will not pick a merge rule on its own; a human must confirm it in the proposal.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><span class="i-cn">排序公式</span><span class="i-en">Ranking formula</span></div></div>
+        <div class="panel-body">
+          <div class="formula">replacement_score =
+    <span class="f">semantic_similarity</span>    * <span class="w">0.25</span>
+  + <span class="f">entity_match</span>           * <span class="w">0.15</span>
+  + <span class="f">data_source_match</span>      * <span class="w">0.15</span>
+  + <span class="f">region_coverage_match</span>  * <span class="w">0.15</span>
+  + <span class="f">strategy_usage_match</span>   * <span class="w">0.15</span>
+  + <span class="f">health_score</span>           * <span class="w">0.10</span>
+  + <span class="f">risk_penalty</span>           * <span class="neg">-0.10</span></div>
+          <div class="section-hd" style="margin-top:16px"><span class="i-cn">room_category_v2 的贡献拆解</span><span class="i-en">Contribution breakdown · room_category_v2</span></div>
+          <div id="contrib-list"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+            <b style="font-size:12.5px"><span class="i-cn">总分</span><span class="i-en">Total</span></b>
+            <span class="score-wrap"><span class="score-bar good"><i style="width:87%"></i></span><span class="score-num">0.87</span></span>
+          </div>
+          <div style="font-size:11.5px;color:var(--text-3);margin-top:10px;line-height:1.55">
+            <span class="i-cn">注意 <code>data_source_match</code> 这一项：在故障场景下它奖励的是<b>数据源隔离</b>，而不是数据源相同。共用故障源的候选会被扣分而不是加分。</span>
+            <span class="i-en">Note <code>data_source_match</code>: in a failure context it rewards <b>source isolation</b>, not source sameness. A candidate on the same failing source is penalised, not rewarded.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><span class="i-cn">护栏检查</span><span class="i-en">Guardrail checks</span></div>
+          <span class="panel-hint">2 <span class="i-cn">条触发</span><span class="i-en">fired</span></span></div>
+        <div class="panel-body" id="guard-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== F5 · IDSP Handoff Proposal ==================== -->
+<div class="page" id="page-f5">
+  <div class="page-header">
+    <div>
+      <div class="page-title"><span class="i-cn">IDSP 策略变更提案</span><span class="i-en">IDSP Strategy Change Proposal</span></div>
+      <div class="page-sub">
+        <span class="i-cn">Agent 对 IDSP 的能力分三层：<b>读</b>（策略如何消费特征）→ <b>提案</b>（生成结构化变更建议）→ <b>写</b>（仅在人工确认后落库）。Agent 永远不会跳过中间那一层。</span>
+        <span class="i-en">The Agent's IDSP capability is layered: <b>read</b> (how strategies consume the feature) → <b>propose</b> (generate a structured change) → <b>write</b> (only after human confirmation). The middle layer is never skipped.</span>
+      </div>
+    </div>
+    <span class="chip amber" style="font-size:12px;padding:5px 12px">DRAFT · <span class="i-cn">待人工确认</span><span class="i-en">awaiting human confirmation</span></span>
+  </div>
+
+  <div class="panel">
+    <div class="panel-body" style="padding-bottom:8px">
+      <div class="sm-title"><span class="i-cn">替代状态机</span><span class="i-en">Replacement state</span></div>
+      <div class="sm" style="margin-bottom:14px">
+        <span class="sm-node done">CANDIDATE_FOUND</span><span class="sm-arrow">→</span>
+        <span class="sm-node done">FIT_ANALYZED</span><span class="sm-arrow">→</span>
+        <span class="sm-node cur">VALIDATION_REQUIRED</span><span class="sm-arrow">→</span>
+        <span class="sm-node">APPROVED_FOR_PROPOSAL</span><span class="sm-arrow">→</span>
+        <span class="sm-node">PUSHED_TO_IDSP</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="side-col">
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span class="i-cn">提案结构化契约</span><span class="i-en">Proposal contract</span>
+            <span class="chip purple">SKILL · idsp_proposal</span></div>
+          <span class="panel-hint">12 <span class="i-cn">个字段全部必填，缺一项则提案不可提交</span><span class="i-en">fields, all required — a missing field blocks submission</span></span>
+        </div>
+        <div class="panel-body">
+          <div class="prop-grid" id="prop-grid"></div>
+          <div class="gate" id="confirm-gate">
+            <div class="gate-hd">⚠ <span class="i-cn">人工确认关卡 · HUMAN_CONFIRM_REQUIRED</span><span class="i-en">Human confirmation gate · HUMAN_CONFIRM_REQUIRED</span></div>
+            <div style="font-size:12.5px;color:#78350F;line-height:1.6">
+              <span class="i-cn">该提案涉及 EEA 强制类策略且包含一对多枚举映射，必须由策略 owner 确认后才能写入 IDSP 草稿。确认动作会被记录到审计日志，并绑定当前的证据快照。</span>
+              <span class="i-en">This proposal touches EEA enforcement strategies and contains a one-to-many enum mapping. A strategy owner must confirm before an IDSP draft is written. The confirmation is recorded in the audit log and bound to the current evidence snapshot.</span>
+            </div>
+            <div style="margin-top:12px;display:flex;align-items:flex-start;gap:8px">
+              <input type="checkbox" id="ack-map" onchange="gateCheck()" style="margin-top:3px">
+              <label for="ack-map" style="font-size:12.5px;color:#78350F;cursor:pointer">
+                <span class="i-cn">我确认枚举映射规则：<code>001 → P01 + P02</code>（合并为一类），且仅在 EEA 生效。</span>
+                <span class="i-en">I confirm the enum mapping rule <code>001 → P01 + P02</code> (merged into one class), effective in EEA only.</span>
+              </label>
+            </div>
+            <div style="margin-top:8px;display:flex;align-items:flex-start;gap:8px">
+              <input type="checkbox" id="ack-scope" onchange="gateCheck()" style="margin-top:3px">
+              <label for="ack-scope" style="font-size:12.5px;color:#78350F;cursor:pointer">
+                <span class="i-cn">我确认变更范围仅限 12 条受影响策略中的 8 条非强制类，4 条强制类保持原逻辑并走降级。</span>
+                <span class="i-en">I confirm the change is limited to the 8 non-enforcement strategies of the 12 impacted; the 4 enforcement strategies keep their original logic and fall back instead.</span>
+              </label>
+            </div>
+            <div class="gate-actions">
+              <button class="btn btn-primary" id="btn-confirm" disabled onclick="confirmProposal()">
+                <span class="i-cn">确认并创建 IDSP 草稿</span><span class="i-en">Confirm and create IDSP draft</span></button>
+              <button class="btn"><span class="i-cn">转给策略 owner</span><span class="i-en">Route to strategy owner</span></button>
+              <button class="btn btn-ghost" style="color:var(--danger)"><span class="i-cn">驳回提案</span><span class="i-en">Reject proposal</span></button>
+            </div>
+          </div>
+          <div class="callout ok" id="confirm-done" style="display:none;margin-top:14px">
+            <b>IDSP_DRAFT_CREATED</b> ·
+            <span class="i-cn">草稿 <code>idsp-draft-20260730-0412</code> 已生成，进入 VALIDATING。3 天影子测试已排期，回滚条件已注册。Agent 不会自动放量。</span>
+            <span class="i-en">Draft <code>idsp-draft-20260730-0412</code> created and moved to VALIDATING. The 3-day shadow test is scheduled and the rollback condition is registered. The Agent will not roll out on its own.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><span class="i-cn">交接时间线</span><span class="i-en">Handoff timeline</span></div></div>
+        <div class="panel-body">
+          <div class="tl" id="handoff-tl"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><span class="i-cn">六条护栏</span><span class="i-en">Six guardrails</span></div>
+          <span class="panel-hint"><span class="i-cn">触发即改变 UX，不只是提示</span><span class="i-en">Firing changes the UX, not just a toast</span></span></div>
+        <div class="panel-body" id="guard-full"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== F6 · Lineage & Derived ==================== -->
+<div class="page" id="page-f6">
+  <div class="page-header">
+    <div>
+      <div class="page-title"><span class="i-cn">血缘关系与派生特征</span><span class="i-en">Lineage & Derived Feature Explorer</span></div>
+      <div class="page-sub">
+        <span class="i-cn">当没有现成特征能替代时，Agent 的下一步不是放弃，而是回答「能不能由已有特征组合出来」。这条路径必须回到特征创建与评估流程，不能绕过。</span>
+        <span class="i-en">When no existing feature can substitute, the Agent's next move is not to give up but to ask whether one can be composed from what already exists. That path must re-enter the feature creation and evaluation flow — it cannot be short-circuited.</span>
+      </div>
+    </div>
+    <span class="chip gray">P2</span>
+  </div>
+
+  <div class="two-col">
+    <div class="panel">
+      <div class="panel-header"><div class="panel-title"><span class="i-cn">八类血缘关系</span><span class="i-en">Eight lineage relationships</span></div></div>
+      <div class="scroll-x"><table>
+        <thead><tr><th><span class="i-cn">关系</span><span class="i-en">Relationship</span></th><th><span class="i-cn">含义</span><span class="i-en">Meaning</span></th><th><span class="i-cn">在本案例中</span><span class="i-en">In this case</span></th></tr></thead>
+        <tbody id="lineage-body"></tbody>
+      </table></div>
+    </div>
+    <div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><span class="i-cn">派生特征状态机</span><span class="i-en">Derived feature state</span>
+          <span class="chip purple">SKILL · lineage_derivation</span></div></div>
+        <div class="panel-body">
+          <div class="sm">
+            <span class="sm-node cur">DERIVATION_NEEDED</span><span class="sm-arrow">→</span>
+            <span class="sm-node">DERIVED_PROPOSAL_GENERATED</span><span class="sm-arrow">→</span>
+            <span class="sm-node">EVALUATION_REQUIRED</span><span class="sm-arrow">→</span>
+            <span class="sm-node">FEATURE_CREATED</span><span class="sm-arrow">→</span>
+            <span class="sm-node">INDEXED</span><span class="sm-arrow">→</span>
+            <span class="sm-node term">AVAILABLE_FOR_IDSP</span>
+          </div>
+          <div class="callout info" style="margin-top:14px;margin-bottom:0">
+            <span class="i-cn"><b>与 RAG 知识库的接缝：</b><code>INDEXED</code> 这一步复用特征知识库的 embedding 流程——派生特征必须先被索引，才能被 Ask AI 检索到、才能出现在下一次的替代候选里。两条链路在这里合上。</span>
+            <span class="i-en"><b>Seam with the RAG knowledge library:</b> the <code>INDEXED</code> step reuses the knowledge library's embedding pipeline. A derived feature must be indexed before Ask AI can retrieve it or it can appear as a future replacement candidate. This is where the two chains close.</span>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><span class="i-cn">派生提案示例</span><span class="i-en">Derived proposal example</span></div></div>
+        <div class="panel-body">
+          <div class="fcard-sec"><div class="fcard-k"><span class="i-cn">派生名称</span><span class="i-en">Derived name</span></div>
+            <div class="fcard-v mono">room_type_resolved_eea</div></div>
+          <div class="fcard-sec"><div class="fcard-k"><span class="i-cn">组成</span><span class="i-en">Composition</span></div>
+            <div class="fcard-v"><code class="code">coalesce(room_category_v2 → mapped, room_vertical_tag → mapped, 'unknown')</code></div></div>
+          <div class="fcard-sec"><div class="fcard-k"><span class="i-cn">解决什么</span><span class="i-en">What it solves</span></div>
+            <div class="fcard-v muted"><span class="i-cn">把「哪个源可用就用哪个」的判断从每条策略里搬到特征层，12 条策略不需要各自写降级逻辑。</span>
+            <span class="i-en">Moves "use whichever source is available" out of every strategy and into the feature layer, so 12 strategies no longer each need their own fallback logic.</span></div></div>
+          <div class="fcard-sec"><div class="fcard-k"><span class="i-cn">代价</span><span class="i-en">Cost</span></div>
+            <div class="fcard-v muted"><span class="i-cn">新增一个需长期维护的特征；口径解释责任从策略转移到特征 owner。</span>
+            <span class="i-en">Adds a feature that must be maintained long-term; the burden of explaining the definition shifts from strategies to the feature owner.</span></div></div>
+          <div class="fcard-sec"><div class="fcard-k"><span class="i-cn">当前状态</span><span class="i-en">Current state</span></div>
+            <div class="fcard-v"><span class="chip amber">EVALUATION_REQUIRED</span>
+              <span style="font-size:11.5px;color:var(--text-3);margin-left:6px"><span class="i-cn">需先通过技能评估才可创建</span><span class="i-en">must pass skills evaluation before creation</span></span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== F7 · Design Notes ==================== -->
+<div class="page" id="page-f7">
+  <div class="page-header">
+    <div>
+      <div class="page-title"><span class="i-cn">设计说明</span><span class="i-en">Design Notes</span></div>
+      <div class="page-sub">
+        <span class="i-cn">这份原型对应 PRD《Agentic Workflow：Feature Monitoring → Diagnosis → Replacement → IDSP Handoff》。这一页记录做取舍的地方，方便评审时对齐。</span>
+        <span class="i-en">This prototype implements the PRD "Agentic Workflow: Feature Monitoring → Diagnosis → Replacement → IDSP Handoff". This page records the trade-offs, so reviews can start from the decisions rather than the pixels.</span>
+      </div>
+    </div>
+    <span class="chip gray">07/30/2026 · Yueming Gao</span>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><span class="i-cn">产品定位的四个升级</span><span class="i-en">Four positioning upgrades</span></div></div>
+        <div class="panel-body">
+          <div style="display:grid;gap:12px" id="upgrade-list"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><span class="i-cn">关键设计决策</span><span class="i-en">Key design decisions</span></div></div>
+        <div class="panel-body"><ul class="notes">
+          <li><b><span class="i-cn">看板不解释原因。</span><span class="i-en">The dashboard does not explain causes.</span></b>
+            <span class="i-cn">F1 只做排序和分流。把「为什么」放进看板会让它变成一个永远读不完的页面，也会让 Agent 的结论失去可追溯的证据上下文。</span>
+            <span class="i-en">F1 only ranks and routes. Putting "why" on the dashboard turns it into a page nobody finishes reading, and strips the Agent's conclusions of the evidence context they need.</span></li>
+          <li><b><span class="i-cn">Agent 的每条结论都必须绑定证据。</span><span class="i-en">Every Agent conclusion binds to evidence.</span></b>
+            <span class="i-cn">诊断面板固定四段结构：结论 / 根因假设 / 证据 / 下一步。证据只能来自指标、trace 样本、数据源状态、策略消费四类，凑不出证据的假设不展示——宁可少给一条。</span>
+            <span class="i-en">The diagnosis panel has a fixed four-part structure: summary, hypothesis, evidence, next actions. Evidence may only come from metrics, trace samples, data source status or strategy usage. A hypothesis that cannot be evidenced is not shown — better one fewer than one unfounded.</span></li>
+          <li><b><span class="i-cn">根因假设给置信度而不是唯一答案。</span><span class="i-en">Hypotheses carry confidence, not a single verdict.</span></b>
+            <span class="i-cn">现实里根因经常是叠加的（本例就是枚举映射变更 + 数据源延迟）。强行输出唯一根因会诱导用户只修一半。</span>
+            <span class="i-en">Real root causes stack — this case is an enum mapping change <i>plus</i> a source delay. Forcing a single answer nudges people into fixing only half of it.</span></li>
+          <li><b><span class="i-cn">数据源相同是减分项而不是加分项。</span><span class="i-en">A shared data source subtracts, not adds.</span></b>
+            <span class="i-cn">这是替代排序里最反直觉的一条。普通检索场景下同源意味着口径一致，但在故障场景下同源意味着一起挂。</span>
+            <span class="i-en">The most counter-intuitive rule in the ranking. In ordinary retrieval a shared source means a consistent definition; in a failure it means failing together.</span></li>
+          <li><b><span class="i-cn">适配标签是五档而不是「相似度百分比」。</span><span class="i-en">Fit is five labels, not a similarity percentage.</span></b>
+            <span class="i-cn">百分比无法回答「能不能直接用」。五档标签每一档都直接对应一条 IDSP 交接规则，能被写进提案。</span>
+            <span class="i-en">A percentage cannot answer "can I use this". Each of the five labels maps to one IDSP handoff rule and can be written into a proposal.</span></li>
+          <li><b><span class="i-cn">Agent 对 IDSP 只读和提案，不直接写。</span><span class="i-en">The Agent reads and proposes on IDSP; it never writes.</span></b>
+            <span class="i-cn">分成读 / 提案 / 人工确认后写三层。策略变更影响线上，这一层的信任成本远高于特征创建，所以宁可慢一步。</span>
+            <span class="i-en">Split into read, propose, and human-confirmed write. Strategy changes hit production, and the trust cost here is far higher than for feature creation — worth one extra step.</span></li>
+          <li><b><span class="i-cn">一对多枚举映射永远不自动决定。</span><span class="i-en">One-to-many enum mappings are never auto-resolved.</span></b>
+            <span class="i-cn">本例 <code>001 → P01 + P02</code>，合并规则涉及业务判断。Agent 可以把选项列全，但勾选的动作必须是人做的。</span>
+            <span class="i-en">In this case <code>001 → P01 + P02</code>; the merge rule is a business judgement. The Agent can enumerate the options, but a human ticks the box.</span></li>
+          <li><b><span class="i-cn">复用 RAG 知识库的索引流程而不是另起一套。</span><span class="i-en">Reuse the RAG indexing flow rather than building a second one.</span></b>
+            <span class="i-cn">派生特征走 <code>FEATURE_CREATED → INDEXED → AVAILABLE_FOR_IDSP</code>，和知识库同一条 embedding 管道。否则会出现「有这个特征但 Agent 找不到」的分裂状态。</span>
+            <span class="i-en">Derived features follow <code>FEATURE_CREATED → INDEXED → AVAILABLE_FOR_IDSP</code> on the same embedding pipeline as the knowledge library. Otherwise you get the split state where a feature exists but the Agent cannot find it.</span></li>
+        </ul></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><span class="i-cn">五个 Agent Skill</span><span class="i-en">Five Agent Skills</span></div>
+          <span class="panel-hint"><span class="i-cn">拆分而不是做成一个大模型调用</span><span class="i-en">Split, not one giant call</span></span></div>
+        <div class="panel-body"><div class="skill-grid" id="skill-grid"></div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><span class="i-cn">Featurelist 与优先级</span><span class="i-en">Featurelist and priority</span></div></div>
+        <div class="scroll-x"><table>
+          <thead><tr><th>#</th><th>Feature</th><th>P</th><th><span class="i-cn">本原型覆盖</span><span class="i-en">In this prototype</span></th></tr></thead>
+          <tbody id="fl-body"></tbody>
+        </table></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><span class="i-cn">尚未解决的问题</span><span class="i-en">Open questions</span></div></div>
+        <div class="panel-body"><ul class="notes">
+          <li><span class="i-cn">健康分的计算口径还没定。四类指标如何加权、是否按地区分别计算，需要和数据侧对齐。</span>
+            <span class="i-en">The health score formula is undecided — how the four metric categories are weighted, and whether it is computed per region, still needs alignment with the data side.</span></li>
+          <li><span class="i-cn">影子测试的时长目前写死 3 天。是否应该按策略流量自动推算，还是让 owner 填，需要看 IDSP 侧的能力。</span>
+            <span class="i-en">Shadow test duration is hard-coded at 3 days. Whether it should be derived from strategy traffic or entered by the owner depends on what IDSP can support.</span></li>
+          <li><span class="i-cn">Agent 提案被驳回后的学习闭环还没设计。驳回理由如果不回流，同样的候选下次还会排在第一。</span>
+            <span class="i-en">There is no learning loop after a proposal is rejected. If the rejection reason does not flow back, the same candidate ranks first again next time.</span></li>
+          <li><span class="i-cn">多个特征同时异常时的合并诊断（例如同一数据源导致 18 个特征一起挂）目前只在 F1 有入口，诊断面板还是单特征视角。</span>
+            <span class="i-en">Joint diagnosis when many features fail together — one source taking down 18 features — has an entry point on F1 but the diagnosis panel is still single-feature.</span></li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== Ask AI widget ==================== -->
+<div class="fab" id="fab" onclick="toggleQA()">
+  <span class="fab-dot"></span>
+  <span class="i-cn">Ask AI</span><span class="i-en">Ask AI</span>
+</div>
+<div class="qa-panel" id="qa-panel">
+  <div class="qa-head">
+    <div>
+      <div class="qa-head-title">Ask AI</div>
+      <div class="qa-head-sub"><span class="i-cn">特征知识库 + 监控上下文</span><span class="i-en">Feature knowledge library + monitoring context</span></div>
+    </div>
+    <button class="modal-close" onclick="toggleQA()">×</button>
+  </div>
+  <div class="qa-body" id="qa-body">
+    <div class="qa-suggest-hint"><span class="i-cn">试试这些</span><span class="i-en">Try these</span></div>
+    <div class="qa-suggest-card" onclick="qaAsk(this.textContent.trim())">Why is room_type_feature critical in EEA?</div>
+    <div class="qa-suggest-card" onclick="qaAsk(this.textContent.trim())">What can replace room_type_feature?</div>
+    <div class="qa-suggest-card" onclick="qaAsk(this.textContent.trim())">Which strategies are impacted?</div>
+    <div class="qa-suggest-card" onclick="qaAsk(this.textContent.trim())">What are the enum values of room_category_v2?</div>
+    <div class="qa-suggest-card" onclick="qaAsk(this.textContent.trim())">Can the Agent update IDSP directly?</div>
+  </div>
+  <div class="qa-foot">
+    <input id="qa-input" placeholder='Ask about features, anomalies or proposals…' onkeydown="if(event.key==='Enter'){qaAsk(this.value);this.value=''}">
+    <button class="btn btn-primary btn-sm" onclick="var i=document.getElementById('qa-input');qaAsk(i.value);i.value=''">→</button>
+  </div>
+</div>
+
+<!-- ==================== Agent modal ==================== -->
+<div class="modal-overlay" id="agent-modal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-title">
+          <span class="i-cn">Agent 诊断面板</span><span class="i-en">Agent Diagnosis Panel</span>
+          <span class="chip purple" id="ag-skill">SKILL · anomaly_diagnosis</span>
+        </div>
+        <div class="modal-sub" id="ag-sub"></div>
+      </div>
+      <button class="modal-close" onclick="closeAgent()">×</button>
+    </div>
+    <div class="modal-body" id="ag-body"></div>
+    <div class="modal-ft">
+      <span class="hint"><span class="i-cn">Agent 的输出是提案，不是变更。所有写入 IDSP 的动作都需要人工确认。</span>
+        <span class="i-en">The Agent's output is a proposal, not a change. Every IDSP write needs human confirmation.</span></span>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="closeAgent()"><span class="i-cn">关闭</span><span class="i-en">Close</span></button>
+        <button class="btn btn-primary" onclick="closeAgent();switchPage('f4')"><span class="i-cn">寻找替代特征</span><span class="i-en">Find replacement</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================================
+   Agentic Workflow prototype · interaction layer
+   Bilingual strategy: every generated string is emitted as a paired
+   <span class="i-cn"> / <span class="i-en"> node via T(), so switching the
+   language is a pure CSS toggle and never needs a re-render.
+   ========================================================================== */
+let LANG = 'en';
+function T(cn, en){ return '<span class="i-cn">' + cn + '</span><span class="i-en">' + en + '</span>'; }
+function L(o){ return (o && typeof o === 'object') ? (o[LANG] || o.cn) : o; }
+function $(id){ return document.getElementById(id); }
+
+function toggleLang(){
+  LANG = LANG === 'cn' ? 'en' : 'cn';
+  document.body.classList.toggle('lang-en', LANG === 'en');
+  $('lang-toggle').textContent = LANG === 'cn' ? 'EN' : '中文';
+  var qi = $('qa-input');
+  if (qi) qi.placeholder = LANG === 'cn' ? '询问特征、异常或提案…' : 'Ask about features, anomalies or proposals…';
+}
+
+/* ---------- page switching ---------- */
+function switchPage(id){
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  var pg = $('page-' + id); if (pg) pg.classList.add('active');
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.toggle('active', t.dataset.page === id); });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click', function(){ switchPage(t.dataset.page); });
+});
+
+/* ==========================================================================
+   F1 · Monitoring dashboard
+   ========================================================================== */
+var HM_X = {
+  feature: ['room_type_feature','room_quality_score','stream_lang_tag','user_age_band','content_risk_tag','room_category_v2'],
+  domain:  ['Live Room','User Profile','Content Safety','Commerce','Growth'],
+  source:  ['room_meta_service','room_tag_pipeline','content_model_svc','user_profile_db','room_catalog_v2']
+};
+var HM_Y = {
+  region: ['EEA','US','SEA','BR','Global'],
+  entity: ['room','user','author','content','device'],
+  time:   ['07/29 12–18','07/29 18–24','07/30 00–06','07/30 06–12']
+};
+var HM_OVERRIDE = {
+  'room_type_feature|EEA': 31, 'room_type_feature|room': 34, 'room_type_feature|07/30 00–06': 29,
+  'room_type_feature|07/29 18–24': 44, 'room_type_feature|US': 92, 'room_type_feature|SEA': 90,
+  'room_quality_score|EEA': 46, 'room_quality_score|US': 52, 'stream_lang_tag|EEA': 63,
+  'content_risk_tag|SEA': 66, 'room_category_v2|EEA': 96, 'room_category_v2|BR': null,
+  'Live Room|EEA': 38, 'Content Safety|EEA': 58, 'Live Room|07/30 00–06': 41,
+  'room_meta_service|EEA': 33, 'room_meta_service|room': 37, 'room_meta_service|07/30 00–06': 30,
+  'room_tag_pipeline|EEA': 42, 'room_catalog_v2|EEA': 96, 'user_profile_db|Global': 88
+};
+var hmState = { x: 'feature', y: 'region' };
+
+function hmScore(x, y){
+  var k = x + '|' + y;
+  if (Object.prototype.hasOwnProperty.call(HM_OVERRIDE, k)) return HM_OVERRIDE[k];
+  var h = 0; for (var i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) % 9973;
+  return 61 + (h % 38);
+}
+function hmBand(v){
+  if (v === null) return 'hm-h0';
+  if (v < 40) return 'hm-h1'; if (v < 60) return 'hm-h2';
+  if (v < 75) return 'hm-h3'; if (v < 90) return 'hm-h4'; return 'hm-h5';
+}
+function renderHeatmap(){
+  var xs = HM_X[hmState.x], ys = HM_Y[hmState.y];
+  var h = '<thead><tr><th class="rowhd"></th>';
+  xs.forEach(function(x){ h += '<th>' + x + '</th>'; });
+  h += '</tr></thead><tbody>';
+  ys.forEach(function(y){
+    h += '<tr><th class="rowhd">' + y + '</th>';
+    xs.forEach(function(x){
+      var v = hmScore(x, y);
+      var sel = (v !== null && v < 40) ? ' sel' : '';
+      var sub = v === null ? T('无覆盖','no data') : (v < 60 ? T(Math.max(1, Math.round((100 - v) / 7)) + ' 策略', Math.max(1, Math.round((100 - v) / 7)) + ' strat.') : T('正常','ok'));
+      h += '<td><div class="hm-cell ' + hmBand(v) + sel + '" onclick="hmCell(\'' + x + '\',\'' + y + '\',' + (v === null ? 'null' : v) + ')">' +
+           '<span>' + (v === null ? '—' : v) + '</span><span class="sub">' + sub + '</span></div></td>';
+    });
+    h += '</tr>';
+  });
+  $('hm-table').innerHTML = h + '</tbody>';
+}
+function hmAxis(axis, val, el){
+  hmState[axis] = val;
+  var seg = el.parentNode;
+  seg.querySelectorAll('div').forEach(function(d){ d.classList.remove('on'); });
+  el.classList.add('on');
+  renderHeatmap();
+}
+function hmCell(x, y, v){
+  if (v !== null && v < 40 && (x.indexOf('room_type') === 0 || x.indexOf('room_meta') === 0 || x === 'Live Room')) { switchPage('f2'); return; }
+  var f = $('anom-filter');
+  f.style.display = 'inline-flex';
+  f.innerHTML = x + ' × ' + y + ' · ' + (v === null ? T('无覆盖','no coverage') : T('健康分 ','health ') + v);
+  document.querySelector('.table-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+var ANOMALIES = [
+  { f:'room_type_feature',  t:'distribution_shift + enum_unseen_value', sev:'critical', r:'EEA',       s:12, at:'07/29 21:10', st:'ROOT_CAUSE_HYPOTHESIS', go:'f2' },
+  { f:'room_heat_index',    t:'service_error_rate',                     sev:'critical', r:'Global',    s:7,  at:'07/30 02:40', st:'DETECTED',              go:null },
+  { f:'room_quality_score', t:'null_rate_spike',                        sev:'critical', r:'EEA / US',  s:9,  at:'07/30 00:20', st:'DIAGNOSING',            go:null },
+  { f:'user_age_band',      t:'freshness_delay',                        sev:'warning',  r:'Global',    s:6,  at:'07/30 01:05', st:'DIAGNOSING',            go:null },
+  { f:'stream_lang_tag',    t:'coverage_drop',                          sev:'warning',  r:'EEA',       s:4,  at:'07/29 23:40', st:'DETECTED',              go:null },
+  { f:'content_risk_tag',   t:'value_range_drift',                      sev:'warning',  r:'SEA',       s:3,  at:'07/29 18:12', st:'REPLACEMENT_SEARCHING', go:null }
+];
+function renderAnomalies(filter){
+  var rows = ANOMALIES.filter(function(a){ return filter === 'all' || a.sev === filter; });
+  var h = '';
+  rows.forEach(function(a, i){
+    h += '<tr>' +
+      '<td style="color:var(--text-4)">' + (i + 1) + '</td>' +
+      '<td><span class="cell-name mono">' + a.f + '</span></td>' +
+      '<td><span class="code">' + a.t + '</span></td>' +
+      '<td><span class="chip ' + (a.sev === 'critical' ? 'red' : 'amber') + '">' + a.sev.toUpperCase() + '</span></td>' +
+      '<td>' + a.r + '</td>' +
+      '<td><b>' + a.s + '</b> <span style="color:var(--text-4);font-size:11px">' + T('条','strategies') + '</span></td>' +
+      '<td class="mono" style="font-size:12px">' + a.at + '</td>' +
+      '<td><span class="sm-node" style="font-size:10px;padding:3px 8px">' + a.st + '</span></td>' +
+      '<td>' + (a.go
+        ? '<button class="btn btn-sm btn-primary" onclick="switchPage(\'' + a.go + '\')">' + T('下钻','Drill down') + '</button>'
+        : '<button class="btn btn-sm" onclick="openAgent(\'diagnose\')">' + T('诊断','Diagnose') + '</button>') +
+      '</td></tr>';
+  });
+  $('anom-body').innerHTML = h;
+  $('anom-count').innerHTML = rows.length + ' ' + T('条','items');
+}
+function filterSeverity(v){
+  renderAnomalies(v);
+  var f = $('anom-filter');
+  if (v === 'all') { f.style.display = 'none'; }
+  else { f.style.display = 'inline-flex'; f.innerHTML = v.toUpperCase() + ' ' + T('已筛选','filtered'); }
+}
+function kpiPick(el, key){
+  document.querySelectorAll('.kpi').forEach(function(k){ k.classList.remove('on'); });
+  el.classList.add('on');
+  if (key === 'critical') renderAnomalies('critical');
+  else if (key === 'warning') renderAnomalies('warning');
+  else renderAnomalies('all');
+  var f = $('anom-filter');
+  if (key === 'critical' || key === 'warning') { f.style.display = 'inline-flex'; f.innerHTML = key.toUpperCase(); }
+  else f.style.display = 'none';
+}
+
+/* ==========================================================================
+   F2 · Drilldown — metric breakdown, strategy usage, trace samples
+   ========================================================================== */
+var METRIC_CATS = [
+  { icon:'①', cn:'数据质量', en:'Data quality', hint:T('特征值本身是否可信','is the value itself trustworthy'), items:[
+    { k:'null_rate',                v:'12.4', u:'%',  d:T('基线 0.8% · +11.6pp','baseline 0.8% · +11.6pp'),  s:'bad',  dir:'up',   spark:[2,2,3,2,3,4,9,14,18,17] },
+    { k:'enum_unseen_value_rate',   v:'33.4', u:'%',  d:T('基线 0.6% · 上游新增标签','baseline 0.6% · new upstream tags'), s:'bad', dir:'up', spark:[1,1,1,1,2,6,14,22,30,33] },
+    { k:'distribution_psi',         v:'0.42', u:'',   d:T('阈值 0.20 · 已越界','threshold 0.20 · breached'), s:'bad',  dir:'up',   spark:[3,4,3,4,5,9,16,26,34,42] },
+    { k:'freshness_lag',            v:'4h20', u:'m',  d:T('SLA 30m','SLA 30m'),                              s:'bad',  dir:'up',   spark:[2,2,2,3,6,11,17,22,26,28] }
+  ]},
+  { icon:'②', cn:'特征服务', en:'Feature service', hint:T('服务本身是否健康','is the service itself healthy'), items:[
+    { k:'qps',              v:'18.2', u:'k',  d:T('与昨日持平','flat vs. yesterday'),           s:'',     dir:'flat', spark:[16,17,18,18,17,18,18,19,18,18] },
+    { k:'p99_latency',      v:'42',   u:'ms', d:T('阈值 120ms','threshold 120ms'),              s:'',     dir:'flat', spark:[40,41,42,40,43,41,42,44,42,42] },
+    { k:'service_error_rate', v:'0.03', u:'%', d:T('正常','normal'),                            s:'',     dir:'down', spark:[3,3,2,3,3,2,3,3,3,3] },
+    { k:'coverage_rate',    v:'62',   u:'%',  d:T('基线 94% · EEA 覆盖下降','baseline 94% · EEA coverage drop'), s:'warn', dir:'up', spark:[94,94,93,94,92,86,74,66,63,62] }
+  ]},
+  { icon:'③', cn:'策略消费', en:'Strategy consumption', hint:T('IDSP 侧怎么用这个特征','how IDSP actually consumes it'), items:[
+    { k:'hit_rate',             v:'0.46', u:'',  d:T('基线 0.81 · 12 条策略中位数','baseline 0.81 · median of 12'), s:'bad',  dir:'up',   spark:[81,80,81,79,78,70,60,52,48,46] },
+    { k:'fallback_rate',        v:'31.2', u:'%', d:T('基线 2.1%','baseline 2.1%'),                                  s:'bad',  dir:'up',   spark:[2,2,3,2,4,9,17,24,29,31] },
+    { k:'decision_change_rate', v:'18.7', u:'%', d:T('与昨日同窗口相比','vs. same window yesterday'),              s:'warn', dir:'up',   spark:[3,3,4,3,5,8,12,15,17,19] },
+    { k:'strategies_impacted',  v:'12',   u:'',  d:T('其中 4 条为强制类','4 of them enforcement'),                  s:'warn', dir:'up',   spark:[0,0,1,1,2,5,8,10,12,12] }
+  ]},
+  { icon:'④', cn:'业务影响', en:'Business impact', hint:T('用户和运营侧能感知到什么','what users and ops actually feel'), items:[
+    { k:'enforcement_precision', v:'-6.2', u:'pp', d:T('EEA 强制类策略','EEA enforcement strategies'),  s:'warn', dir:'up',   spark:[0,0,-1,0,-1,-2,-4,-5,-6,-6].map(Math.abs) },
+    { k:'appeal_rate',           v:'2.4',  u:'×',  d:T('申诉量较基线','appeals vs. baseline'),          s:'bad',  dir:'up',   spark:[10,10,11,10,12,15,19,22,23,24] },
+    { k:'false_negative_est',    v:'+1.8', u:'k',  d:T('估算，24h','estimated, 24h'),                   s:'warn', dir:'up',   spark:[1,1,2,2,3,6,10,14,17,18] },
+    { k:'revenue_impact',        v:'—',    u:'',   d:T('尚未接入','not wired up yet'),                  s:'',     dir:'flat', spark:[] }
+  ]}
+];
+function renderMetrics(){
+  var h = '';
+  METRIC_CATS.forEach(function(c){
+    h += '<div class="metric-cat"><div class="metric-cat-hd"><span class="skill-ic">' + c.icon + '</span>' +
+         T(c.cn, c.en) + '<span class="panel-hint" style="font-weight:600">' + c.hint + '</span></div><div class="metric-grid">';
+    c.items.forEach(function(m){
+      var mx = Math.max.apply(null, m.spark.length ? m.spark : [1]);
+      var sp = m.spark.length
+        ? '<div class="spark' + (m.s === 'bad' ? ' red' : '') + '">' + m.spark.map(function(v, i){
+            return '<i style="height:' + Math.max(8, Math.round(v / mx * 100)) + '%"' + (i >= m.spark.length - 2 ? ' class="hi"' : '') + '></i>';
+          }).join('') + '</div>'
+        : '';
+      h += '<div class="metric ' + m.s + '"><div class="metric-k">' + m.k + '</div>' +
+           '<div class="metric-v">' + m.v + (m.u ? '<small>' + m.u + '</small>' : '') + '</div>' +
+           '<div class="metric-d ' + m.dir + '">' + m.d + '</div>' + sp + '</div>';
+    });
+    h += '</div></div>';
+  });
+  $('metric-body').innerHTML = h;
+}
+
+var USAGE = [
+  { s:'eea_minor_protection_v3', u:T('枚举等值 <code>= 001</code>','enum equality <code>= 001</code>'),        r:'EEA', h:'0.42', d:'22.1%', f:'38.4%', i:'high',   e:true },
+  { s:'eea_ad_eligibility',      u:T('枚举等值 <code>= 001</code>','enum equality <code>= 001</code>'),        r:'EEA', h:'0.44', d:'19.6%', f:'33.7%', i:'high',   e:true },
+  { s:'eea_room_visibility',     u:T('枚举集合 <code>in (001,002)</code>','enum set <code>in (001,002)</code>'), r:'EEA', h:'0.51', d:'17.3%', f:'29.0%', i:'high',   e:true },
+  { s:'eea_recommend_filter',    u:T('枚举取反 <code>!= 001</code>','enum negation <code>!= 001</code>'),      r:'EEA', h:'0.63', d:'9.8%',  f:'12.2%', i:'medium', e:false },
+  { s:'global_room_ranking',     u:T('one-hot 特征入模','one-hot model input'),                                r:'Global', h:'0.77', d:'3.1%', f:'4.5%',  i:'low',    e:false }
+];
+function renderUsage(){
+  var h = '';
+  USAGE.forEach(function(u){
+    var chip = u.i === 'high' ? 'red' : (u.i === 'medium' ? 'amber' : 'gray');
+    h += '<tr><td><span class="cell-name mono">' + u.s + '</span>' +
+      (u.e ? ' <span class="chip red" style="font-size:9.5px">' + T('强制','ENFORCE') + '</span>' : '') + '</td>' +
+      '<td style="font-size:12px">' + u.u + '</td><td>' + u.r + '</td>' +
+      '<td style="color:var(--danger);font-weight:700">' + u.h + '</td><td>' + u.d + '</td><td>' + u.f + '</td>' +
+      '<td><span class="chip ' + chip + '">' + u.i.toUpperCase() + '</span></td></tr>';
+  });
+  $('usage-body').innerHTML = h;
+}
+
+var TRACES = [
+  '{\n  <span class="k">"trace_id"</span>: <span class="s">"trace_8f21c"</span>,\n  <span class="k">"room_id"</span>: <span class="s">"r_99f0a231"</span>,\n  <span class="k">"region"</span>: <span class="s">"EEA"</span>,\n  <span class="k">"request_ts"</span>: <span class="s">"2026-07-30T01:14:22Z"</span>,\n  <span class="k">"feature"</span>: {\n    <span class="k">"name"</span>: <span class="s">"room_type_feature"</span>,\n    <span class="k">"value"</span>: <span class="bad">"unknown"</span>,\n    <span class="k">"source"</span>: <span class="s">"room_meta_service"</span>,\n    <span class="k">"source_ts"</span>: <span class="bad">"2026-07-29T20:55:03Z"</span>,   <span class="k">// -4h19m</span>\n    <span class="k">"mapping_table"</span>: <span class="s">"room_tag_pipeline@v7"</span>,\n    <span class="k">"raw_tag"</span>: <span class="bad">"LIVE_PERSONAL_V2"</span>          <span class="k">// not in v7 map</span>\n  },\n  <span class="k">"consumed_by"</span>: [<span class="s">"eea_minor_protection_v3"</span>, <span class="s">"eea_ad_eligibility"</span>],\n  <span class="k">"decision"</span>: <span class="bad">"FALLBACK"</span>\n}',
+  '{\n  <span class="k">"trace_id"</span>: <span class="s">"trace_4a07d"</span>,\n  <span class="k">"room_id"</span>: <span class="s">"r_31c88b02"</span>,\n  <span class="k">"region"</span>: <span class="s">"EEA"</span>,\n  <span class="k">"request_ts"</span>: <span class="s">"2026-07-30T01:14:31Z"</span>,\n  <span class="k">"feature"</span>: {\n    <span class="k">"name"</span>: <span class="s">"room_type_feature"</span>,\n    <span class="k">"value"</span>: <span class="n">"002"</span>,\n    <span class="k">"source"</span>: <span class="s">"room_meta_service"</span>,\n    <span class="k">"source_ts"</span>: <span class="s">"2026-07-30T01:12:58Z"</span>,\n    <span class="k">"mapping_table"</span>: <span class="s">"room_tag_pipeline@v7"</span>,\n    <span class="k">"raw_tag"</span>: <span class="s">"LIVE_PK"</span>                    <span class="k">// still mapped</span>\n  },\n  <span class="k">"decision"</span>: <span class="s">"PASS"</span>\n}',
+  '{\n  <span class="k">"trace_id"</span>: <span class="s">"trace_c1e93"</span>,\n  <span class="k">"room_id"</span>: <span class="s">"r_99f0a231"</span>,      <span class="k">// same room as sample 1</span>\n  <span class="k">"region"</span>: <span class="s">"SEA"</span>,\n  <span class="k">"request_ts"</span>: <span class="s">"2026-07-30T01:14:25Z"</span>,\n  <span class="k">"feature"</span>: {\n    <span class="k">"name"</span>: <span class="s">"room_type_feature"</span>,\n    <span class="k">"value"</span>: <span class="n">"001"</span>,                  <span class="k">// resolved correctly</span>\n    <span class="k">"source"</span>: <span class="s">"room_meta_service"</span>,\n    <span class="k">"source_ts"</span>: <span class="s">"2026-07-30T01:13:40Z"</span>,\n    <span class="k">"mapping_table"</span>: <span class="s">"room_tag_pipeline@v6"</span>,  <span class="k">// v6, not v7</span>\n    <span class="k">"raw_tag"</span>: <span class="s">"LIVE_PERSONAL"</span>\n  },\n  <span class="k">"decision"</span>: <span class="s">"PASS"</span>\n}'
+];
+function pickTrace(i, el){
+  $('trace-box').innerHTML = TRACES[i];
+  if (el) {
+    el.parentNode.querySelectorAll('.btn').forEach(function(b){ b.style.borderColor = ''; b.style.color = ''; });
+    el.style.borderColor = 'var(--primary)'; el.style.color = 'var(--primary)';
+  }
+}
+
+/* ==========================================================================
+   F3 · Feature card — three modes
+   ========================================================================== */
+var CARD_NOTE = {
+  discovery:   T('<b>发现态：</b>用户在检索或浏览时看到的形态。重点回答「这是什么、为什么匹配到我、能不能用」，不展示实时异常与 trace。','<b>Discovery:</b> what a user sees while searching or browsing. It answers what this is, why it matched, and whether it can be used — no live anomaly or trace detail.'),
+  diagnosis:   T('<b>诊断态：</b>特征出问题时的形态。重点回答「现在怎么了、影响了谁、下一步做什么」，字段全部指向行动。','<b>Diagnosis:</b> the shape when the feature is broken. It answers what is happening now, who is affected, and what to do next — every field points at an action.'),
+  replacement: T('<b>替代态：</b>作为候选出现在替代列表里的形态。重点回答「和原特征差在哪、能不能直接换、怎么验证」，差异必须写在明面上。','<b>Replacement:</b> the shape of a candidate in the replacement list. It answers how it differs from the original, whether it can be swapped in, and how to validate — differences must be explicit.')
+};
+var CARDS = {
+  discovery: {
+    name:'room_type_feature', code:'feature.live.room_type · ENUM · 6 values',
+    chips:'<span class="chip purple">CATEGORIZATION</span><span class="chip gray">entity: room</span>',
+    fit:'<span class="fit fit-full">' + T('完全替代','Full substitute') + '</span>',
+    secs:[
+      [T('业务含义','Business meaning'), T('直播间的房间类型，用于区分个人直播间、PK 房、多人连麦、游戏直播、电商直播等场景。','The type of a live room — personal room, PK room, multi-guest, game stream, commerce stream and so on.')],
+      [T('为什么被匹配到','Why matched'), T('查询词「直播间类型」与特征描述语义相似度 0.91；实体 <code>room</code> 与查询上下文一致；该特征被 38 条策略消费，使用热度高。','Semantic similarity 0.91 against the feature description; entity <code>room</code> matches the query context; consumed by 38 strategies, so usage is high.')],
+      [T('风险与限制','Risk / limitation'), T('EEA 覆盖率仅 62%，低覆盖地区需要配合兜底逻辑使用。','EEA coverage is only 62%; low-coverage regions need fallback logic alongside it.')],
+      [T('输出样例','Output samples'), '<div class="samples"><span class="s">001</span><span class="s">002</span><span class="s">003</span><span class="s">004</span><span class="s">005</span><span class="s">unknown</span></div>']
+    ],
+    ft:['<span style="font-size:11.5px;color:var(--text-3)">' + T('更新于 07/28 · owner Yueming Gao','updated 07/28 · owner Yueming Gao') + '</span>',
+        '<button class="btn btn-primary btn-sm" onclick="switchPage(\'f2\')">' + T('查看详情','View detail') + '</button>']
+  },
+  diagnosis: {
+    name:'room_type_feature', code:'feature.live.room_type · ENUM · 6 values',
+    chips:'<span class="chip red">CRITICAL</span><span class="chip amber">' + T('健康分 31','health 31') + '</span>',
+    fit:'',
+    secs:[
+      [T('业务含义','Business meaning'), T('直播间的房间类型。','The type of a live room.')],
+      [T('当前异常','Current anomaly'), T('<b>枚举分布漂移 + 未知值上升</b>（EEA，持续 7h42m）。<code>001</code> 由 40% 跌至 5%，<code>unknown</code> 由 0.6% 升至 33.4%。','<b>Distribution shift plus rising unknown values</b> (EEA, 7h42m and counting). <code>001</code> fell 40% → 5%; <code>unknown</code> rose 0.6% → 33.4%.')],
+      [T('IDSP 使用情况','IDSP usage'), T('12 条策略消费，其中 4 条为 EEA 强制类。hit_rate 中位数 0.81 → 0.46，fallback_rate 2.1% → 31.2%。','12 consuming strategies, 4 of them EEA enforcement. Median hit_rate 0.81 → 0.46; fallback_rate 2.1% → 31.2%.')],
+      [T('Trace / 指标','Trace / metrics'), T('样本 <code>trace_8f21c</code>：同一 room_id 在 SEA 返回 <code>001</code>、EEA 返回 <code>unknown</code>，映射表版本不同（v6 vs v7）。','Sample <code>trace_8f21c</code>: the same room_id returns <code>001</code> in SEA and <code>unknown</code> in EEA — different mapping table versions (v6 vs v7).')],
+      [T('风险与限制','Risk / limitation'), T('4 条强制类策略不可直接切换替代特征，只能走降级路径。','The 4 enforcement strategies cannot be swapped directly; they can only take the degraded path.')]
+    ],
+    ft:['<span style="font-size:11.5px;color:var(--text-3)">' + T('状态 ROOT_CAUSE_HYPOTHESIS','state ROOT_CAUSE_HYPOTHESIS') + '</span>',
+        '<button class="btn btn-primary btn-sm" onclick="switchPage(\'f4\')">' + T('找替代','Find replacement') + '</button>']
+  },
+  replacement: {
+    name:'room_category_v2', code:'feature.live.room_category_v2 · ENUM · 8 values',
+    chips:'<span class="chip green">' + T('健康分 96','health 96') + '</span><span class="chip blue">' + T('候选 #1','candidate #1') + '</span>',
+    fit:'<span class="fit fit-partial">' + T('部分替代','Partial substitute') + '</span>',
+    secs:[
+      [T('业务含义','Business meaning'), T('直播间品类，粒度比 room_type_feature 更细，来自内容目录服务而非房间元信息服务。','Live room category, finer-grained than room_type_feature, sourced from the content catalog service rather than room metadata.')],
+      [T('为什么被匹配到','Why matched'), T('实体一致（room）；数据源 <code>room_catalog_v2</code> 与故障源隔离；EEA 覆盖率 94% 高于原特征；8 条策略的枚举等值用法可映射。','Same entity (room); source <code>room_catalog_v2</code> is isolated from the failing one; EEA coverage 94% beats the original; the enum-equality usage in 8 strategies is mappable.')],
+      [T('与原特征的差异','Difference vs. original'), T('取值 8 个 vs 6 个；<code>001</code> 对应 <code>P01 + P02</code>，属一对多；更新频率 15 分钟，略滞后于近实时。','8 values vs 6; <code>001</code> maps to <code>P01 + P02</code> (one-to-many); refreshed every 15 minutes, slightly behind near-real-time.')],
+      [T('验证方式','Validation'), T('3 天影子测试，观测 decision_change_rate 与 enforcement_precision；回滚条件：decision_change_rate > 25% 或 precision 下降超 3pp。','3-day shadow test tracking decision_change_rate and enforcement_precision. Rollback if decision_change_rate exceeds 25% or precision drops more than 3pp.')],
+      [T('风险与限制','Risk / limitation'), T('一对多映射的合并规则必须由策略 owner 确认；4 条强制类策略本轮不切换。','The merge rule for the one-to-many mapping must be confirmed by the strategy owner; the 4 enforcement strategies are out of scope this round.')],
+      [T('输出样例','Output samples'), '<div class="samples"><span class="s">P01</span><span class="s">P02</span><span class="s">P03</span><span class="s">P04</span><span class="s">P05</span><span class="s">P06</span><span class="s">P07</span><span class="s">P08</span></div>']
+    ],
+    ft:['<span class="score-wrap"><span class="score-bar good"><i style="width:87%"></i></span><span class="score-num">0.87</span></span>',
+        '<button class="btn btn-primary btn-sm" onclick="switchPage(\'f5\')">' + T('加入提案','Add to proposal') + '</button>']
+  }
+};
+function renderCard(mode){
+  var c = CARDS[mode];
+  var h = '<div class="fcard"><div class="fcard-hd"><div><div class="fcard-name">' + c.name + '</div>' +
+          '<div class="fcard-code">' + c.code + '</div></div><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">' +
+          c.chips + c.fit + '</div></div><div class="fcard-body">';
+  c.secs.forEach(function(s){
+    h += '<div class="fcard-sec"><div class="fcard-k">' + s[0] + '</div><div class="fcard-v muted">' + s[1] + '</div></div>';
+  });
+  h += '</div><div class="fcard-ft">' + c.ft[0] + c.ft[1] + '</div></div>';
+  $('card-main').innerHTML = h;
+  $('mode-note').innerHTML = CARD_NOTE[mode];
+}
+function cardMode(mode, el){
+  el.parentNode.querySelectorAll('div').forEach(function(d){ d.classList.remove('on'); });
+  el.classList.add('on');
+  renderCard(mode);
+}
+
+/* ==========================================================================
+   F4 · Replacement discovery
+   ========================================================================== */
+var CANDIDATES = [
+  { n:'room_category_v2', src:'room_catalog_v2', score:0.87, bar:'good', fit:'partial',
+    fitCn:'部分替代', fitEn:'Partial substitute',
+    why:T('实体一致 · 数据源已隔离 · EEA 覆盖 94% · 8 条枚举等值策略可映射','same entity · source isolated · 94% EEA coverage · maps onto the 8 enum-equality strategies'),
+    risk:T('<code>001 → P01 + P02</code> 一对多，合并规则需人工确认；不进入 4 条强制类策略。','<code>001 → P01 + P02</code> is one-to-many — the merge rule needs human confirmation; excluded from the 4 enforcement strategies.'),
+    act:'<button class="btn btn-primary btn-sm" onclick="switchPage(\'f5\')">' + T('生成提案','Generate proposal') + '</button>', ok:true },
+  { n:'room_vertical_tag', src:'content_model_svc', score:0.64, bar:'mid', fit:'partial',
+    fitCn:'部分替代', fitEn:'Partial substitute',
+    why:T('数据源隔离 · 语义相近 · 但 EEA 覆盖仅 71%，且取值粒度更粗','source isolated · semantically close · but EEA coverage is only 71% and the value grain is coarser'),
+    risk:T('禁止进入强制类策略（覆盖率不足触发 ENFORCEMENT_STRATEGY_LOCK）。','Blocked from enforcement strategies — insufficient coverage fires ENFORCEMENT_STRATEGY_LOCK.'),
+    act:'<button class="btn btn-sm">' + T('加入备选','Add as backup') + '</button>', ok:true },
+  { n:'room_content_model_score', src:'content_model_svc', score:0.38, bar:'mid', fit:'fallback',
+    fitCn:'仅兜底', fitEn:'Fallback only',
+    why:T('健康度高、源隔离，但为连续值而非枚举，无法直接支撑等值判断','healthy and isolated, but continuous rather than enum — it cannot support equality checks directly'),
+    risk:T('只能用于降级路径，需要额外的阈值定义，且阈值本身需要评估。','Usable only on the degraded path; needs a threshold definition, and the threshold itself needs evaluation.'),
+    act:'<button class="btn btn-sm">' + T('仅作降级','Degrade path only') + '</button>', ok:true },
+  { n:'room_type_backup_v1', src:'room_meta_service', score:0.00, bar:'', fit:'no',
+    fitCn:'不适用', fitEn:'Not suitable',
+    why:T('语义相似度 0.94，在普通检索里会排第一','semantic similarity 0.94 — it would rank first in ordinary retrieval'),
+    risk:T('<b>已排除：</b>与被替代特征共用故障数据源 <code>room_meta_service</code>，会继承同一故障。触发 SOURCE_SHARED_RISK。','<b>Excluded:</b> shares the failing source <code>room_meta_service</code> with the feature it would replace and inherits the same failure. Fires SOURCE_SHARED_RISK.'),
+    act:'<button class="btn btn-sm" disabled style="opacity:.5;cursor:not-allowed">' + T('禁止加入提案','Blocked from proposals') + '</button>', ok:false }
+];
+function renderCandidates(){
+  var h = '';
+  CANDIDATES.forEach(function(c, i){
+    h += '<div class="fcard" style="margin-bottom:12px' + (c.ok ? '' : ';opacity:.72;border-color:#FCA5A5') + '">' +
+      '<div class="fcard-hd"><div><div class="fcard-name">#' + (i + 1) + ' · ' + c.n + '</div>' +
+      '<div class="fcard-code">source: ' + c.src + '</div></div>' +
+      '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+      '<span class="fit fit-' + c.fit + '">' + T(c.fitCn, c.fitEn) + '</span>' +
+      (c.ok ? '<span class="score-wrap"><span class="score-bar ' + c.bar + '"><i style="width:' + Math.round(c.score * 100) + '%"></i></span>' +
+              '<span class="score-num">' + c.score.toFixed(2) + '</span></span>' : '') +
+      '</div></div><div class="fcard-body">' +
+      '<div class="fcard-sec"><div class="fcard-k">' + T('为什么被匹配到','Why matched') + '</div><div class="fcard-v muted">' + c.why + '</div></div>' +
+      '<div class="fcard-sec"><div class="fcard-k">' + T('风险与限制','Risk / limitation') + '</div><div class="fcard-v muted">' + c.risk + '</div></div>' +
+      '</div><div class="fcard-ft"><span style="font-size:11.5px;color:var(--text-3)">' +
+      (c.ok ? T('可进入提案流程','eligible for the proposal flow') : T('展示但不可选','shown but not selectable')) +
+      '</span>' + c.act + '</div></div>';
+  });
+  $('cand-list').innerHTML = h;
+}
+var CONTRIB = [
+  { k:'semantic_similarity',    w:0.25, v:0.78, c:0.195 },
+  { k:'entity_match',           w:0.15, v:1.00, c:0.150 },
+  { k:'data_source_match',      w:0.15, v:1.00, c:0.150 },
+  { k:'region_coverage_match',  w:0.15, v:1.00, c:0.150 },
+  { k:'strategy_usage_match',   w:0.15, v:0.67, c:0.100 },
+  { k:'health_score',           w:0.10, v:0.96, c:0.096 },
+  { k:'risk_penalty',           w:-0.10, v:0.60, c:-0.060 }
+];
+function renderContrib(){
+  var h = '';
+  CONTRIB.forEach(function(c){
+    var neg = c.c < 0;
+    h += '<div class="contrib"><span class="mono" style="font-size:11px;color:var(--text-2)">' + c.k + '</span>' +
+      '<span class="contrib-bar' + (neg ? ' neg' : '') + '"><i style="width:' + Math.round(Math.abs(c.c) / 0.20 * 100) + '%"></i></span>' +
+      '<span class="mono" style="text-align:right;font-weight:700;color:' + (neg ? 'var(--danger)' : 'var(--text-1)') + '">' +
+      (neg ? '' : '+') + c.c.toFixed(3) + '</span></div>';
+  });
+  $('contrib-list').innerHTML = h;
+}
+var GUARDS = [
+  { code:'SOURCE_SHARED_RISK', fired:true,
+    trig:T('候选特征与故障特征共用同一数据源','candidate shares the failing feature\'s data source'),
+    beh:T('候选被降权至排序末位并标记不适用，不允许加入提案','candidate is demoted to the bottom, labelled not suitable, and blocked from proposals'),
+    ux:T('room_type_backup_v1 已被排除，排除理由在卡片上直接展示','room_type_backup_v1 excluded, with the reason shown on the card') },
+  { code:'ENUM_MAPPING_AMBIGUOUS', fired:true,
+    trig:T('原枚举值在候选特征中对应多个取值','one original enum value maps to several values in the candidate'),
+    beh:T('适配标签强制降级为「部分替代」，提案必须携带映射确认项','fit is forced down to "partial substitute" and the proposal must carry a mapping confirmation'),
+    ux:T('提案页出现 <code>001 → P01 + P02</code> 的必勾选项','the proposal page shows a mandatory <code>001 → P01 + P02</code> checkbox') },
+  { code:'ENFORCEMENT_STRATEGY_LOCK', fired:false,
+    trig:T('目标策略为强制类且候选非「完全替代」','the target strategy is enforcement and the candidate is not a full substitute'),
+    beh:T('该策略从变更范围中移除，仅保留降级路径','the strategy is removed from the change scope; only the degraded path remains'),
+    ux:T('本例 4 条强制类策略已自动移出变更范围','the 4 enforcement strategies here were removed from scope automatically') },
+  { code:'REGION_COVERAGE_INSUFFICIENT', fired:false,
+    trig:T('候选在目标地区覆盖率低于原特征','candidate coverage in the target region is below the original'),
+    beh:T('提案不可提交，需先补齐覆盖或改走派生路径','the proposal cannot be submitted; coverage must be filled or the derived path taken'),
+    ux:T('room_category_v2 覆盖 94% > 62%，未触发','room_category_v2 covers 94% vs 62% — not fired') },
+  { code:'EVIDENCE_INSUFFICIENT', fired:false,
+    trig:T('根因假设无法绑定到指标 / trace / 数据源 / 策略消费任一证据','a hypothesis cannot be bound to metric, trace, source or usage evidence'),
+    beh:T('该假设不展示，Agent 只输出可证据化的结论','the hypothesis is not shown; the Agent only emits evidenced conclusions'),
+    ux:T('第三条假设「流量结构变化」保留但标注为已基本排除','the third hypothesis is kept but marked largely ruled out') },
+  { code:'HUMAN_CONFIRM_REQUIRED', fired:true,
+    trig:T('提案涉及强制类策略、一对多映射或跨地区变更','the proposal touches enforcement, one-to-many mappings or cross-region change'),
+    beh:T('阻断写入 IDSP，直到策略 owner 显式确认','writing to IDSP is blocked until a strategy owner explicitly confirms'),
+    ux:T('确认按钮在两个勾选项完成前保持禁用','the confirm button stays disabled until both checkboxes are ticked') }
+];
+function gdHtml(g, full){
+  var h = '<div class="gd' + (g.fired ? ' fired' : '') + '"><div class="gd-code">' + g.code +
+    '<span class="chip ' + (g.fired ? 'red' : 'gray') + '">' + (g.fired ? T('已触发','FIRED') : T('未触发','not fired')) + '</span></div>' +
+    '<div class="gd-row"><b>' + T('触发','Trigger') + '</b><span>' + g.trig + '</span></div>';
+  if (full) {
+    h += '<div class="gd-row"><b>' + T('行为','Behaviour') + '</b><span>' + g.beh + '</span></div>' +
+         '<div class="gd-row"><b>' + T('本例','Here') + '</b><span>' + g.ux + '</span></div>';
+  }
+  return h + '</div>';
+}
+function renderGuards(){
+  $('guard-list').innerHTML = GUARDS.map(function(g){ return gdHtml(g, false); }).join('');
+  $('guard-full').innerHTML = GUARDS.map(function(g){ return gdHtml(g, true); }).join('');
+}
+
+/* ==========================================================================
+   F5 · IDSP proposal
+   ========================================================================== */
+var PROPOSAL = [
+  ['proposal_id',           T('提案 ID','Proposal ID'),            '<span class="mono">prop-20260730-0412</span>'],
+  ['trigger_anomaly',       T('触发异常','Triggering anomaly'),     '<span class="mono">anom-rtf-20260729-2110</span> · room_type_feature · distribution_shift'],
+  ['original_feature',      T('原特征','Original feature'),         '<span class="mono">room_type_feature</span> ' + T('（健康分 31）','(health 31)')],
+  ['replacement_feature',   T('替代特征','Replacement feature'),    '<span class="mono">room_category_v2</span> ' + T('（健康分 96，源已隔离）','(health 96, source isolated)')],
+  ['fit_label',             T('适配标签','Fit label'),              '<span class="fit fit-partial">' + T('部分替代','Partial substitute') + '</span>'],
+  ['target_strategies',     T('目标策略','Target strategies'),      T('12 条中的 8 条非强制类：eea_room_visibility、eea_recommend_filter 等。4 条强制类保持原逻辑。','8 of 12, all non-enforcement: eea_room_visibility, eea_recommend_filter and others. The 4 enforcement strategies keep their current logic.')],
+  ['value_mapping',         T('取值映射','Value mapping'),          '<code class="code">001 → P01 + P02</code> · <code class="code">002 → P03</code> · <code class="code">003 → P04</code> · <code class="code">004 → P06</code> · <code class="code">005 → P07</code> · <code class="code">unknown → P08</code>'],
+  ['scope_condition',       T('生效范围','Scope condition'),        '<code class="code">region = EEA</code> ' + T('· 其他地区不变','· other regions unchanged')],
+  ['expected_impact',       T('预期影响','Expected impact'),        T('hit_rate 预计回到 0.74–0.79；fallback_rate 由 31.2% 降至 3% 以内；decision_change_rate 预估 11%–16%。','hit_rate expected back to 0.74–0.79; fallback_rate down from 31.2% to under 3%; decision_change_rate estimated at 11–16%.')],
+  ['validation_plan',       T('验证方案','Validation plan'),        T('3 天影子测试，双跑对比 decision_change_rate 与 enforcement_precision，不放量。','3-day shadow test running both in parallel on decision_change_rate and enforcement_precision. No traffic shift.')],
+  ['rollback_condition',    T('回滚条件','Rollback condition'),     T('decision_change_rate > 25%，或 enforcement_precision 下降超过 3pp，或 appeal_rate 上升超过 1.5×，任一满足即自动回滚。','decision_change_rate above 25%, enforcement_precision down more than 3pp, or appeal_rate up more than 1.5× — any one triggers automatic rollback.')],
+  ['requires_human_confirm', T('需人工确认','Human confirmation'),  '<span class="chip red">TRUE</span> ' + T('· 强制类策略 + 一对多映射','· enforcement strategies + one-to-many mapping')]
+];
+function renderProposal(){
+  var h = '';
+  PROPOSAL.forEach(function(p, i){
+    h += '<div class="prop-k"><span class="n">' + String(i + 1).padStart(2, '0') + '</span><span>' + p[1] +
+         '<div style="font-weight:500;color:var(--text-4);font-family:\'SF Mono\',monospace;font-size:10px">' + p[0] + '</div></span></div>' +
+         '<div class="prop-v">' + p[2] + '</div>';
+  });
+  $('prop-grid').innerHTML = h;
+}
+var HANDOFF = [
+  { s:'done', t:T('读取 IDSP 策略消费信息','Read strategy usage from IDSP'), m:T('07/30 01:20 · 只读接口 · 12 条策略、使用方式、地区、指标','07/30 01:20 · read-only API · 12 strategies, usage, regions, metrics') },
+  { s:'done', t:T('生成结构化提案','Generate structured proposal'), m:T('07/30 04:12 · 12 个字段全部填充 · SKILL idsp_proposal','07/30 04:12 · all 12 fields populated · SKILL idsp_proposal') },
+  { s:'done', t:T('护栏检查','Guardrail checks'), m:T('3 条触发：SOURCE_SHARED_RISK / ENUM_MAPPING_AMBIGUOUS / HUMAN_CONFIRM_REQUIRED','3 fired: SOURCE_SHARED_RISK / ENUM_MAPPING_AMBIGUOUS / HUMAN_CONFIRM_REQUIRED') },
+  { s:'cur',  t:T('人工确认关卡','Human confirmation gate'), m:T('等待策略 owner 勾选映射规则与变更范围','waiting for the strategy owner to tick the mapping rule and the scope') },
+  { s:'',     t:T('写入 IDSP 草稿','Write IDSP draft'), m:T('仅在确认后执行 · 草稿状态，不自动生效','only after confirmation · draft state, never auto-active') },
+  { s:'',     t:T('影子测试与放量决策','Shadow test and rollout decision'), m:T('3 天 · 放量决策始终由人做，Agent 只提供指标','3 days · the rollout call stays with a human; the Agent only supplies metrics') }
+];
+function renderHandoff(){
+  $('handoff-tl').innerHTML = HANDOFF.map(function(x){
+    return '<div class="tl-item ' + x.s + '"><span class="tl-dot"></span><div class="tl-t">' + x.t + '</div><div class="tl-m">' + x.m + '</div></div>';
+  }).join('');
+}
+function gateCheck(){
+  $('btn-confirm').disabled = !($('ack-map').checked && $('ack-scope').checked);
+}
+function confirmProposal(){
+  $('confirm-done').style.display = 'block';
+  $('btn-confirm').disabled = true;
+  document.querySelectorAll('#page-f5 .sm-node').forEach(function(n){
+    if (n.textContent === 'VALIDATION_REQUIRED') { n.classList.remove('cur'); n.classList.add('done'); }
+    if (n.textContent === 'APPROVED_FOR_PROPOSAL') n.classList.add('done');
+    if (n.textContent === 'PUSHED_TO_IDSP') n.classList.add('cur');
+  });
+  var tl = document.querySelectorAll('#handoff-tl .tl-item');
+  if (tl[3]) { tl[3].classList.remove('cur'); tl[3].classList.add('done'); }
+  if (tl[4]) tl[4].classList.add('cur');
+  $('confirm-done').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+/* ==========================================================================
+   F6 · Lineage
+   ========================================================================== */
+var LINEAGE = [
+  ['DERIVED_FROM',    T('由某个特征加工得到','computed from another feature'),          T('room_type_resolved_eea ← room_category_v2','room_type_resolved_eea ← room_category_v2')],
+  ['AGGREGATED_FROM', T('由明细聚合得到','aggregated from a finer grain'),              T('room_heat_index ← room_event_stream','room_heat_index ← room_event_stream')],
+  ['SAME_SOURCE',     T('共用同一数据源','shares a data source'),                       T('<b style="color:var(--danger)">18 个特征共用 room_meta_service，本次一起受影响</b>','<b style="color:var(--danger)">18 features share room_meta_service and failed together</b>')],
+  ['SAME_ENTITY',     T('描述同一实体','describes the same entity'),                    T('entity <code>room</code> 下共 46 个特征','46 features live under entity <code>room</code>')],
+  ['SEMANTIC_SIBLING',T('语义相近但口径不同','semantically close, different definition'),T('room_type_feature ↔ room_category_v2（一对多）','room_type_feature ↔ room_category_v2 (one-to-many)')],
+  ['VERSION_OF',      T('同一特征的不同版本','a version of the same feature'),           T('room_category_v2 ← room_category_v1（已下线）','room_category_v2 ← room_category_v1 (retired)')],
+  ['FALLBACK_OF',     T('作为兜底路径存在','exists as a fallback path'),                 T('room_content_model_score → room_type_feature','room_content_model_score → room_type_feature')],
+  ['CONSUMED_BY',     T('被策略消费','consumed by a strategy'),                          T('room_type_feature → 12 条 IDSP 策略','room_type_feature → 12 IDSP strategies')]
+];
+function renderLineage(){
+  $('lineage-body').innerHTML = LINEAGE.map(function(l){
+    return '<tr><td><span class="code">' + l[0] + '</span></td><td style="font-size:12px">' + l[1] + '</td><td style="font-size:12px">' + l[2] + '</td></tr>';
+  }).join('');
+}
+
+/* ==========================================================================
+   F7 · Design notes
+   ========================================================================== */
+var UPGRADES = [
+  { n:'1', cn:'从「找得到」到「找得对」', en:'From findable to correct',
+    d:T('RAG 阶段解决的是检索与理解；这一阶段要解决的是在具体故障场景下哪个候选真的能顶上。','The RAG phase solved retrieval and comprehension. This phase has to answer which candidate can actually stand in under a specific failure.') },
+  { n:'2', cn:'从「被动问答」到「主动监控」', en:'From answering to watching',
+    d:T('入口从搜索框变成看板。用户不需要先知道出了问题才来提问。','The entry point moves from a search box to a dashboard. Users no longer need to already know something broke.') },
+  { n:'3', cn:'从「解释」到「提案」', en:'From explanation to proposal',
+    d:T('Agent 的产出从一段自然语言变成一个 12 字段的结构化契约，可被 IDSP 直接消费。','The Agent output moves from a paragraph of prose to a 12-field structured contract that IDSP can consume directly.') },
+  { n:'4', cn:'从「单点特征」到「链路视角」', en:'From single feature to full chain',
+    d:T('把数据源、血缘、策略消费串成一条链路，故障影响面在一个视图里可见。','Source, lineage and strategy consumption are strung into one chain, so the blast radius is visible in a single view.') }
+];
+function renderUpgrades(){
+  $('upgrade-list').innerHTML = UPGRADES.map(function(u){
+    return '<div style="display:flex;gap:10px;align-items:flex-start"><span class="skill-ic">' + u.n + '</span>' +
+      '<div><div style="font-size:12.5px;font-weight:800;color:var(--text-1)">' + T(u.cn, u.en) + '</div>' +
+      '<div style="font-size:12px;color:var(--text-2);margin-top:3px;line-height:1.55">' + u.d + '</div></div></div>';
+  }).join('');
+}
+var SKILLS = [
+  { ic:'A', name:'anomaly_diagnosis',
+    inp:T('指标 / trace 样本 / 数据源状态 / 策略消费','metrics, trace samples, source status, strategy usage'),
+    out:T('结论 + 带置信度的根因假设 + 证据','summary, ranked hypotheses with confidence, evidence'),
+    gd:T('无证据的假设不输出','no evidence, no hypothesis') },
+  { ic:'B', name:'replacement_discovery',
+    inp:T('被替代特征 + 故障上下文（源、地区、消费方式）','the failing feature plus failure context (source, region, usage)'),
+    out:T('带适配标签与得分拆解的候选列表','ranked candidates with fit labels and score breakdown'),
+    gd:T('同源候选降权并标记不适用','same-source candidates demoted and flagged') },
+  { ic:'C', name:'idsp_proposal',
+    inp:T('候选特征 + 目标策略 + 映射规则','candidate, target strategies, mapping rules'),
+    out:T('12 字段结构化提案（草稿）','a 12-field structured proposal, as a draft'),
+    gd:T('永不直接写 IDSP','never writes IDSP directly') },
+  { ic:'D', name:'lineage_derivation',
+    inp:T('实体 + 缺失口径 + 现有特征集合','entity, the missing definition, the existing feature set'),
+    out:T('派生特征提案（组成式 + 代价说明）','a derived-feature proposal with composition and cost'),
+    gd:T('必须回到特征创建与评估流程','must re-enter the creation and evaluation flow') },
+  { ic:'E', name:'impact_assessment',
+    inp:T('血缘图 + 策略消费 + 地区分布','lineage graph, strategy usage, region distribution'),
+    out:T('影响面评估与优先级排序','blast-radius assessment and prioritisation'),
+    gd:T('业务影响未接入时明确标注为估算','flags business impact as estimated while it is not wired up') }
+];
+function renderSkills(){
+  $('skill-grid').innerHTML = SKILLS.map(function(s){
+    return '<div class="skill"><div class="skill-hd"><span class="skill-ic">' + s.ic + '</span><span class="mono" style="font-size:12px">' + s.name + '</span></div>' +
+      '<div class="skill-row"><b>' + T('输入','In') + '</b><span>' + s.inp + '</span></div>' +
+      '<div class="skill-row"><b>' + T('输出','Out') + '</b><span>' + s.out + '</span></div>' +
+      '<div class="skill-row"><b>' + T('护栏','Guard') + '</b><span>' + s.gd + '</span></div></div>';
+  }).join('');
+}
+var FEATURELIST = [
+  ['F1', 'Feature Monitoring Dashboard',        'P0', T('已覆盖 · 热力图 + 异常列表 + 分流','covered · heatmap, anomaly list, routing')],
+  ['F2', 'Anomaly Drilldown',                   'P0', T('已覆盖 · 7 个区块全量','covered · all 7 sections')],
+  ['F3', 'Enhanced Feature Card',               'P0', T('已覆盖 · 三态字段契约','covered · three-mode field contract')],
+  ['F4', 'Replacement Discovery',               'P0', T('已覆盖 · 排序公式与贡献拆解','covered · ranking formula and breakdown')],
+  ['F5', 'IDSP Handoff Proposal',               'P0', T('已覆盖 · 12 字段 + 人工确认关卡','covered · 12 fields and the confirmation gate')],
+  ['F6', 'Lineage & Derived Feature',           'P2', T('部分覆盖 · 关系表与派生示例，无交互图','partial · relationship table and one example, no interactive graph')],
+  ['F7', 'Ask AI on monitoring context',        'P1', T('部分覆盖 · 预置问答，未接检索','partial · canned Q&A, retrieval not wired')],
+  ['F8', 'Joint diagnosis across features',     'P2', T('未覆盖 · 仅在 F1 留了入口','not covered · entry point only on F1')],
+  ['F9', 'Proposal rejection learning loop',    'P2', T('未覆盖 · 见待解决问题','not covered · see open questions')],
+  ['F10','Alert subscription & routing',        'P1', T('未覆盖','not covered')]
+];
+function renderFeaturelist(){
+  $('fl-body').innerHTML = FEATURELIST.map(function(f, i){
+    var chip = f[2] === 'P0' ? 'red' : (f[2] === 'P1' ? 'amber' : 'gray');
+    return '<tr><td style="color:var(--text-4)">' + (i + 1) + '</td>' +
+      '<td><b>' + f[0] + '</b> <span style="font-size:11.5px;color:var(--text-2)">' + f[1] + '</span></td>' +
+      '<td><span class="chip ' + chip + '">' + f[2] + '</span></td>' +
+      '<td style="font-size:11.5px;color:var(--text-2)">' + f[3] + '</td></tr>';
+  }).join('');
+}
+
+/* ==========================================================================
+   Agent modal
+   ========================================================================== */
+var AGENT_VIEWS = {
+  overview: {
+    skill: 'SKILL · impact_assessment',
+    sub: T('全局视角 · 1,284 个特征 · 14 个严重异常 · 38 条受影响策略','Global view · 1,284 features · 14 critical anomalies · 38 impacted strategies'),
+    body:
+      '<div class="ag-block"><div class="ag-block-hd"><span>' + T('诊断结论','Diagnosis summary') + '</span></div>' +
+      '<p>' + T('当前 14 个严重异常中，有 8 个可归因于同一个上游事件：<code>room_meta_service</code> 自 07/29 20:55 起同步延迟 4h20m，共 18 个特征读取该源。建议按数据源而不是按特征逐个处理。','Of the 14 critical anomalies, 8 trace back to a single upstream event: <code>room_meta_service</code> has been 4h20m behind since 07/29 20:55, and 18 features read from it. Handle this by source rather than feature by feature.') + '</p></div>' +
+      '<div class="ag-block"><div class="ag-block-hd"><span>' + T('影响面排序','Blast radius ranking') + '</span></div>' +
+      '<div class="ev-item"><span class="ev-tag src">SOURCE</span><span><code>room_meta_service</code> → 18 ' + T('个特征 · 26 条策略 · EEA 最严重','features · 26 strategies · EEA worst hit') + '</span></div>' +
+      '<div class="ev-item"><span class="ev-tag src">SOURCE</span><span><code>room_tag_pipeline</code> → 7 ' + T('个特征 · 枚举映射 schema 变更','features · enum mapping schema change') + '</span></div>' +
+      '<div class="ev-item"><span class="ev-tag">METRIC</span><span>' + T('EEA 地区整体健康分中位数 91 → 58','EEA median health score fell 91 → 58') + '</span></div>' +
+      '<div class="ev-item"><span class="ev-tag usage">USAGE</span><span>' + T('38 条受影响策略中 12 条为强制类，需优先处理','12 of the 38 impacted strategies are enforcement — handle first') + '</span></div></div>' +
+      '<div class="ag-block"><div class="ag-block-hd"><span>' + T('下一步动作','Next actions') + '</span></div>' +
+      '<div class="na-item"><div class="na-copy"><b>' + T('下钻 room_type_feature','Drill into room_type_feature') + '</b>' + T('影响面最大的单个特征','the single feature with the widest blast radius') + '</div>' +
+      '<button class="btn btn-sm btn-primary" onclick="closeAgent();switchPage(\'f2\')">' + T('打开','Open') + '</button></div>' +
+      '<div class="na-item"><div class="na-copy"><b>' + T('按数据源合并处理','Group by data source') + '</b>' + T('18 个特征共用同一故障源','18 features on one failing source') + '</div>' +
+      '<button class="btn btn-sm" onclick="closeAgent();switchPage(\'f6\')">' + T('查看血缘','View lineage') + '</button></div></div>'
+  },
+  diagnose: {
+    skill: 'SKILL · anomaly_diagnosis',
+    sub: 'room_type_feature · EEA · ' + T('持续 7h42m · 状态 ROOT_CAUSE_HYPOTHESIS','7h42m · state ROOT_CAUSE_HYPOTHESIS'),
+    body:
+      '<div class="ag-block"><div class="ag-block-hd"><span>' + T('诊断结论','Diagnosis summary') + '</span></div>' +
+      '<p>' + T('EEA 流量下枚举分布显著漂移，主因指向上游 <code>room_tag_pipeline</code> 07/29 21:02 的枚举映射 schema 变更，叠加 <code>room_meta_service</code> 4h20m 同步延迟。特征逻辑本身没有变更记录。','Under EEA traffic the enum distribution shifted materially. The likely cause is the enum mapping schema change in <code>room_tag_pipeline</code> at 07/29 21:02, compounded by a 4h20m sync delay in <code>room_meta_service</code>. The feature logic itself has no change record.') + '</p></div>' +
+      '<div class="ag-block"><div class="ag-block-hd"><span>' + T('根因假设','Root cause hypothesis') + '</span><span style="font-weight:600;color:var(--text-4);font-size:9.5px">' + T('按置信度排序','ranked by confidence') + '</span></div>' +
+      '<div class="hyp"><div class="hyp-rank">1</div><div class="hyp-body"><div class="hyp-title">' + T('枚举映射问题','Enum mapping issue') +
+      '<span class="conf-bar"><i style="width:72%"></i></span><span style="font-size:10.5px;color:var(--text-3);font-weight:700">0.72</span></div>' +
+      '<div class="hyp-desc">' + T('上游新增原始标签 <code>LIVE_PERSONAL_V2</code> 未落入 v7 映射表，归入 unknown。SEA 仍用 v6 映射表，因此不受影响——这是关键对照。','The new upstream raw tag <code>LIVE_PERSONAL_V2</code> is missing from mapping table v7 and lands in unknown. SEA still runs v6 and is unaffected — that is the decisive control.') + '</div></div></div>' +
+      '<div class="hyp"><div class="hyp-rank">2</div><div class="hyp-body"><div class="hyp-title">' + T('数据源延迟','Data source delay') +
+      '<span class="conf-bar"><i style="width:58%"></i></span><span style="font-size:10.5px;color:var(--text-3);font-weight:700">0.58</span></div>' +
+      '<div class="hyp-desc">' + T('room_meta_service 落后 4h20m，部分请求读到空值后降级为 unknown。可解释约三分之一的 unknown 增量。','room_meta_service is 4h20m behind; some requests read empty and degrade to unknown. Explains roughly a third of the increase.') + '</div></div></div>' +
+      '<div class="hyp"><div class="hyp-rank">3</div><div class="hyp-body"><div class="hyp-title">' + T('流量结构变化','Traffic mix shift') +
+      '<span class="conf-bar"><i style="width:19%"></i></span><span style="font-size:10.5px;color:var(--text-3);font-weight:700">0.19</span></div>' +
+      '<div class="hyp-desc">' + T('已基本排除：非 EEA 地区同期分布无变化，且同一 room_id 跨地区结果不一致。','Largely ruled out: non-EEA regions are unchanged over the same window, and the same room_id resolves differently across regions.') + '</div></div></div></div>' +
+      '<div class="ag-block"><div class="ag-block-hd"><span>' + T('证据','Evidence') + '</span></div>' +
+      '<div class="ev-item"><span class="ev-tag">METRIC</span><span><code>enum_unseen_value_rate</code> 0.6% → 33.4% · <code>distribution_psi</code> 0.42</span></div>' +
+      '<div class="ev-item"><span class="ev-tag src">SOURCE</span><span><code>room_tag_pipeline</code> SCHEMA_CHANGED @ 07/29 21:02 · <code>room_meta_service</code> +4h20m</span></div>' +
+      '<div class="ev-item"><span class="ev-tag trace">TRACE</span><span><code>trace_8f21c</code> vs <code>trace_c1e93</code> · ' + T('同一 room_id，EEA 返回 unknown、SEA 返回 001','same room_id: unknown in EEA, 001 in SEA') + '</span></div>' +
+      '<div class="ev-item"><span class="ev-tag usage">USAGE</span><span>' + T('12 条策略 hit_rate 中位数 0.81 → 0.46，fallback_rate 2.1% → 31.2%','median hit_rate across 12 strategies 0.81 → 0.46; fallback_rate 2.1% → 31.2%') + '</span></div></div>' +
+      '<div class="ag-block"><div class="ag-block-hd"><span>' + T('下一步动作','Next actions') + '</span></div>' +
+      '<div class="na-item"><div class="na-copy"><b>' + T('寻找替代特征','Find replacement features') + '</b>' + T('按实体 / 地区覆盖 / 数据源隔离排序','ranked by entity, region coverage and source isolation') + '</div>' +
+      '<button class="btn btn-sm btn-primary" onclick="closeAgent();switchPage(\'f4\')">' + T('开始','Start') + '</button></div>' +
+      '<div class="na-item"><div class="na-copy"><b>' + T('通知上游 owner','Notify upstream owner') + '</b>' + T('room_tag_pipeline v7 映射表缺失新标签','room_tag_pipeline v7 is missing the new tag') + '</div>' +
+      '<button class="btn btn-sm">' + T('草拟','Draft') + '</button></div></div>'
+  }
+};
+function openAgent(mode){
+  var v = AGENT_VIEWS[mode] || AGENT_VIEWS.diagnose;
+  $('ag-skill').textContent = v.skill;
+  $('ag-sub').innerHTML = v.sub;
+  $('ag-body').innerHTML = v.body;
+  $('agent-modal').classList.add('open');
+}
+function closeAgent(){ $('agent-modal').classList.remove('open'); }
+document.getElementById('agent-modal').addEventListener('click', function(e){
+  if (e.target === this) closeAgent();
+});
+
+/* ==========================================================================
+   Ask AI widget
+   ========================================================================== */
+function toggleQA(){ $('qa-panel').classList.toggle('open'); }
+var QA = [
+  { m:['critical','eea','why','为什么','严重'], a:T('<b>room_type_feature 在 EEA 被标为 CRITICAL</b>，健康分 31。原因是枚举分布漂移：<code>001</code> 由 40% 跌至 5%，<code>unknown</code> 由 0.6% 升至 33.4%。证据指向上游 <code>room_tag_pipeline</code> 07/29 21:02 的 schema 变更，叠加 <code>room_meta_service</code> 延迟 4h20m。12 条 IDSP 策略受影响，其中 4 条为强制类。','<b>room_type_feature is CRITICAL in EEA</b> with a health score of 31. The enum distribution shifted: <code>001</code> fell 40% → 5% and <code>unknown</code> rose 0.6% → 33.4%. Evidence points to a schema change in upstream <code>room_tag_pipeline</code> at 07/29 21:02, compounded by a 4h20m delay in <code>room_meta_service</code>. 12 IDSP strategies are affected, 4 of them enforcement.') },
+  { m:['replace','替代','candidate','候选'], a:T('<b>三个候选，一个已排除。</b> ① <code>room_category_v2</code> 得分 0.87，部分替代——源已隔离、EEA 覆盖 94%，但 <code>001 → P01 + P02</code> 是一对多。② <code>room_vertical_tag</code> 0.64，禁止进入强制类策略。③ <code>room_content_model_score</code> 0.38，仅兜底。<code>room_type_backup_v1</code> 语义最像但共用故障源，已被 SOURCE_SHARED_RISK 排除。','<b>Three candidates, one excluded.</b> ① <code>room_category_v2</code> scores 0.87, partial substitute — isolated source, 94% EEA coverage, but <code>001 → P01 + P02</code> is one-to-many. ② <code>room_vertical_tag</code> at 0.64, barred from enforcement strategies. ③ <code>room_content_model_score</code> at 0.38, fallback only. <code>room_type_backup_v1</code> is the closest semantically but shares the failing source and was excluded by SOURCE_SHARED_RISK.') },
+  { m:['strateg','策略','impact','影响'], a:T('<b>12 条策略消费该特征</b>，影响最大的 5 条：eea_minor_protection_v3（hit_rate 0.42，强制类）、eea_ad_eligibility（0.44，强制类）、eea_room_visibility（0.51，强制类）、eea_recommend_filter（0.63）、global_room_ranking（0.77）。本轮提案只覆盖 8 条非强制类，4 条强制类保持原逻辑走降级。','<b>12 strategies consume this feature.</b> The five most affected: eea_minor_protection_v3 (hit_rate 0.42, enforcement), eea_ad_eligibility (0.44, enforcement), eea_room_visibility (0.51, enforcement), eea_recommend_filter (0.63) and global_room_ranking (0.77). This proposal covers only the 8 non-enforcement strategies; the 4 enforcement ones keep their logic and fall back.') },
+  { m:['enum','枚举','room_category_v2','value'], a:T('<code>room_category_v2</code> <b>有 8 个取值</b>：P01–P08。与原特征的映射为 <code>001 → P01 + P02</code>（一对多）、<code>002 → P03</code>、<code>003 → P04</code>、<code>004 → P06</code>、<code>005 → P07</code>、<code>unknown → P08</code>。一对多那一条不会由系统自行决定，必须在提案里由人确认。','<code>room_category_v2</code> <b>has 8 values</b>, P01–P08. The mapping is <code>001 → P01 + P02</code> (one-to-many), <code>002 → P03</code>, <code>003 → P04</code>, <code>004 → P06</code>, <code>005 → P07</code>, <code>unknown → P08</code>. The one-to-many line is never resolved by the system — a human confirms it in the proposal.') },
+  { m:['idsp','update','write','直接','写'], a:T('<b>不能。</b>Agent 对 IDSP 的能力分三层：读（策略如何消费特征）、提案（生成 12 字段结构化变更）、写（仅在人工确认后创建草稿）。即使确认后创建的也只是 <code>idsp-draft</code>，需要经过 3 天影子测试，放量决策仍由人做。','<b>No.</b> The Agent\'s IDSP capability is layered: read (how strategies consume the feature), propose (a 12-field structured change), and write (a draft, only after human confirmation). Even then it creates an <code>idsp-draft</code> that goes through a 3-day shadow test, and the rollout call stays with a human.') }
+];
+function qaAsk(text){
+  if (!text || !text.trim()) return;
+  var body = $('qa-body');
+  var hint = body.querySelector('.qa-suggest-hint');
+  if (hint) body.innerHTML = '';
+  var q = text.trim().toLowerCase();
+  var hit = null;
+  for (var i = 0; i < QA.length && !hit; i++) {
+    for (var j = 0; j < QA[i].m.length; j++) {
+      if (q.indexOf(QA[i].m[j]) !== -1) { hit = QA[i]; break; }
+    }
+  }
+  var ans = hit ? hit.a : T('这是原型中的预置问答，暂未接入真实检索。可以试试左侧的建议问题，或询问异常原因、替代候选、受影响策略、枚举映射、IDSP 写入权限。','This prototype ships canned answers and is not wired to live retrieval yet. Try the suggested questions, or ask about the anomaly cause, replacement candidates, impacted strategies, enum mapping, or IDSP write permissions.');
+  body.innerHTML += '<div class="bubble me">' + text.trim() + '</div><div class="bubble ai">' + ans + '</div>';
+  body.scrollTop = body.scrollHeight;
+}
+
+/* ==========================================================================
+   Boot
+   ========================================================================== */
+renderHeatmap();
+renderAnomalies('all');
+renderMetrics();
+renderUsage();
+pickTrace(0, null);
+renderCard('discovery');
+renderCandidates();
+renderContrib();
+renderGuards();
+renderProposal();
+renderHandoff();
+renderLineage();
+renderUpgrades();
+renderSkills();
+renderFeaturelist();
+</script>
+</body>
+</html>
