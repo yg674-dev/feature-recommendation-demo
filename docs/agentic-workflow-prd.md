@@ -22,6 +22,24 @@
     > Current design input: Feature Platform Agentic Workflow - Feature Monitoring → Diagnosis → Replacement → IDSP Handoff  
     > Public wiki references: `wiki/collections/trident-strategy-platform/entities/feature-platform.md`; `wiki/collections/trident-strategy-platform/reports/platform-capability-map.md`; `wiki/collections/trident-strategy-platform/playbooks/how-to-read-metrics-trace-and-data-assets.md`
 
+- **Parent Architecture Context // 上层架构上下文**
+
+    Sourced from *Feature Platform Future Design Blueprint V3.1* (Yueming Gao, 2026-05-27). The two diagrams below anchor where this Agentic Workflow PRD lives inside the larger platform.
+
+    源自《特征平台未来蓝图设计方案 V3.1》（Yueming Gao, 2026-05-27）。下方两张图用于定位本 Agentic Workflow PRD 在整体平台中的位置。
+
+    ![Feature Platform 5-layer architecture](images/image1.png)
+
+    *Figure 1. Feature Platform 5-layer architecture. This Agentic Workflow PRD is scoped to the Recommendation Engine and the AI Agent governance loop sitting on top of L4 (feature service) and the monitoring + evaluation modules — every other module is upstream context.*
+
+    *图 1. Feature Platform 五层架构总图。本 PRD 聚焦于位于 L4（特征服务化）之上的 Recommendation Engine 与 AI Agent 治理闭环，其余模块为上游依赖上下文。*
+
+    ![IDSP end-to-end data flow](images/image3.png)
+
+    *Figure 2. IDSP end-to-end data flow. The Agentic Workflow described in this PRD is exactly the closed loop on the right-hand side: monitoring → diagnosis → Recommendation Engine → IDSP proposal (with Evaluation Model in the validation path).*
+
+    *图 2. IDSP 整体数据流图。本 PRD 描述的 Agentic Workflow 即为右侧闭环：监控 → 诊断 → Recommendation Engine → IDSP 变更 proposal（Evaluation Model 承担验证环节）。*
+
 # Basic Info // 基础信息
 
 > **Change Log // 变更记录**
@@ -29,6 +47,7 @@
 | **Date // 日期** | **Description // 描述** | **修改人 // by** |
 |---|---|---|
 | 07/29/2026 | Initial PRD based on Agentic Workflow design input. | Yueming Gao |
+| 08/12/2026 | Added parent architecture context from Feature Platform Future Design Blueprint V3.1 (2 diagrams: 5-layer architecture + IDSP end-to-end data flow). | Yueming Gao |
 
 > **Relevant Links // 相关链接**
 
