@@ -10,15 +10,24 @@ platform — with a human confirming every write.
 
 ---
 
-## 1. TL;DR
+## 1. Business goal
 
-A feature registry plus RAG Q&A gets a user as far as *finding and understanding* features. In
-the IDSP strategy production lifecycle that is not the job. When a feature goes anomalous, the
-user needs to know why, which strategies are affected, whether to replace or fall back, and how
-to get that change into IDSP safely.
+Governance strategies run on features, so a broken feature is a broken policy — silently, until
+someone notices. The goal is to shorten the interval between a feature going anomalous and a
+strategy change landing safely, **without loosening the review that keeps bad changes out of
+production**.
 
-This closes that loop: **anomaly → feature card → replacement candidates → IDSP strategy change
-proposal**, with the agent proposing and a human confirming.
+That means three things the business can measure: anomaly localization time against its current
+baseline; the share of replacement decisions that arrive reviewable rather than merely
+recommended; and the number of strategy changes reaching production without human confirmation,
+which must stay at zero.
+
+The gap this closes: a feature registry plus RAG Q&A gets a user as far as *finding and
+understanding* features. In the IDSP strategy production lifecycle that is not the job. When a
+feature goes anomalous, the user needs to know why, which strategies are affected, whether to
+replace or fall back, and how to get that change into IDSP safely — which is the loop this
+builds: **anomaly → feature card → replacement candidates → IDSP strategy change proposal**, with
+the agent proposing and a human confirming.
 
 ## 2. Problem
 
