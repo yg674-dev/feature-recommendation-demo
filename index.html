@@ -810,6 +810,8 @@ tr.pick{background:var(--primary-light) !important}
 .sb-ft{font-size:10.5px;line-height:1.9}
 .sb-ft .kbd{font-size:9.5px;min-width:13px;padding:0 3px}
 .sb-hd i{font-size:9px;letter-spacing:.09em}
+.coach-g{float:right;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--warn,#E8912B);
+  background:var(--warn-light,#FDF3E4);border:1px solid rgba(232,145,43,.3);padding:1px 7px;border-radius:10px}
 </style>
 </head>
 <body class="lang-en">
@@ -2926,38 +2928,61 @@ function qaAsk(text){
    Guided demo
    ========================================================================== */
 var DEMO = [
-  { p:'f1', sel:'#flowbar', t:T('工作流状态条','The workflow bar'),
-    b:T('这条状态条贯穿全部页面：它记录当前所处的环节，以及本次处理的特征、地区和被选中的候选。五个环节都可以直接点击跳转。','This bar runs across every page. It records which stage you are in, plus the feature, region and candidate currently in play. All five stages are clickable.') },
-  { p:'f1', sel:'#page-f1 .kpi-row', t:T('从聚合数字进入明细','From aggregate to detail'),
-    b:T('KPI 卡片本身就是筛选器。点击「严重」会把下方异常列表收敛到 critical，点击「监控中的特征」恢复全部。','The KPI cards are filters. Clicking Critical narrows the anomaly list below; clicking Total monitored features restores it.'),
+  /* ── F1 · Monitoring Dashboard ── */
+  { p:'f1', sel:'#flowbar', t:T('这条流水线就是产品本身','The pipeline is the product'),
+    b:T('异常 → 下钻 → 特征卡片 → 替代发现 → IDSP 提案。状态条贯穿全部页面，记住当前环节、这次处理的特征、地区和选中的候选，五个环节都可以直接点。接下来按这条线走一遍。','Anomaly → drilldown → feature card → replacement discovery → IDSP proposal. The bar runs across every page, remembering the stage, the feature, the region and the selected candidate. This walkthrough follows it end to end.') },
+  { p:'f1', sel:'#page-f1 .kpi-row', t:T('聚合数字本身就是筛选器','The aggregate numbers are the filter'),
+    b:T('KPI 卡片可点击：点「严重」把下方异常列表收敛到 critical，点「监控中的特征」恢复全部。看板不是只读的报表，是进入明细的入口。','KPI cards are clickable — Critical narrows the anomaly list below, Total monitored features restores it. The dashboard is an entry point, not a read-only report.'),
     go:function(){ var k = document.querySelectorAll('#page-f1 .kpi')[2]; if (k) kpiPick(k, 'critical'); } },
-  { p:'f1', sel:'#hm-table', t:T('健康热力图','The health heatmap'),
-    b:T('两个轴都可以切换（特征 / 域 / 数据源 × 地区 / 实体 / 时间）。悬停任意格子会展开健康分的三层构成，深红格子可以直接下钻。','Both axes switch — feature / domain / source against region / entity / time. Hovering any cell breaks the health score into its three components; the dark red cells drill straight through.') },
-  { p:'f1', sel:'#page-f1 .table-card', t:T('异常列表可排序、可选中','A sortable, selectable anomaly list'),
-    b:T('表头可点击排序，行可点击查看摘要。第一行 room_type_feature 是本次演示要追的那个异常——下一步会下钻进去。','Column headers sort, and rows select to show a summary. Row one, room_type_feature, is the anomaly this walkthrough follows — the next step drills into it.'),
+  { p:'f1', sel:'#hm-table', t:T('热力图把「哪里坏了」变成两个维度','The heatmap turns “where” into two axes'),
+    b:T('两个轴都可切换（特征 / 域 / 数据源 × 地区 / 实体 / 时间）。悬停任意格子展开健康分的三层构成——深红格子可以直接下钻，不用先猜是哪个特征。','Both axes switch — feature / domain / source against region / entity / time. Hovering breaks the health score into its three components, and the dark cells drill straight through without guessing which feature to open.') },
+  { p:'f1', sel:'#page-f1 .table-card', t:T('从列表锁定这次要追的异常','Locking onto the anomaly this run follows'),
+    b:T('表头可排序、行可选中。第一行 room_type_feature 就是本次要追到底的那条——它会一路带着上下文走完剩下六页。','Headers sort, rows select. Row one, room_type_feature, is the anomaly this run follows — it carries its context through the remaining six pages.'),
     go:function(){ anomSort(3); } },
+
+  /* ── F2 · Feature Drilldown ── */
   { p:'f2', sel:'#dist-ctl', t:T('把漂移当作时间序列回放','Replay the drift as a time series'),
-    b:T('拖动滑块或点击回放，可以看到 07/29 16:00 到 07/30 06:00 之间分布是怎么塌的。关键时刻是 21:02——上游部署了映射表 v7。','Drag the slider or hit replay to watch the distribution collapse between 07/29 16:00 and 07/30 06:00. The pivot is 21:02, when the upstream mapping table v7 shipped.'),
+    b:T('拖动滑块或点击回放，看 07/29 16:00 到 07/30 06:00 分布是怎么塌的。关键时刻是 21:02——上游部署了映射表 v7。诊断从「什么时候变的」开始，而不是「现在是多少」。','Drag the slider or hit replay to watch the distribution collapse between 07/29 16:00 and 07/30 06:00. The pivot is 21:02, when the upstream mapping table v7 shipped. Diagnosis starts from when it changed, not from the current value.'),
     go:function(){ renderDist(1); setTimeout(distPlay, 400); } },
-  { p:'f2', sel:'#metric-body', t:T('每个指标都能展开口径','Every metric opens up'),
-    b:T('点击任意指标卡，会展开它的统计口径和这次为什么变差。指标不是孤立的数字，而是诊断的证据。','Click any metric card to expand how it is computed and why it degraded this time. The numbers are evidence for the diagnosis, not standalone figures.'),
+  { p:'f2', sel:'#metric-body', t:T('每个指标都能展开成证据','Every metric opens into evidence'),
+    b:T('点击任意指标卡展开它的统计口径，以及这次为什么变差。数字不是结论，是支撑结论的材料。','Click any metric card to expand how it is computed and why it degraded. The numbers are not the conclusion — they are what the conclusion rests on.'),
     go:function(){ var m = document.querySelectorAll('#metric-body .metric'); for (var i = 0; i < 3 && i < m.length; i++) m[i].classList.add('open'); } },
-  { p:'f2', sel:'#page-f2 .agent-panel', t:T('Agent 的推理是可见的','The Agent reasons visibly'),
-    b:T('打开 Agent 面板时，会先逐步播放它调用了哪些技能、检索了什么、哪条护栏过滤掉了哪个假设，然后才给结论。结论后面永远跟着证据。','Opening the Agent panel plays back which skills it invoked, what it retrieved and which guardrail filtered which hypothesis — then the conclusion. Every conclusion carries its evidence.'),
+  { p:'f2', sel:'#page-f2 .agent-panel', g:1, t:T('Agent 先给推理过程，再给结论','The Agent shows its work before its answer'),
+    b:T('打开 Agent 面板会先逐步播放：调用了哪些技能、检索了什么、哪条护栏过滤掉了哪个假设——然后才是结论。结论后面永远跟着证据，这是它敢被信任的前提。','Opening the panel plays back which skills ran, what was retrieved and which guardrail filtered which hypothesis — then the conclusion. Every conclusion carries its evidence, which is the condition for trusting it at all.'),
     go:function(){ openAgent('diagnose'); }, close:true },
-  { p:'f4', sel:'#cand-list', t:T('候选是可切换的，不是静态列表','Candidates are switchable, not a static list'),
-    b:T('点击任意候选卡片，右侧的评分构成、护栏触发状态、以及 F5 的整份提案都会按这个候选重新计算。现在切到 #2 room_vertical_tag 看看。','Click any candidate card and the scoring breakdown, the guardrail states and the entire F5 proposal recompute for it. Switching to #2 room_vertical_tag now.'),
+
+  /* ── F3 · Feature Card ── */
+  { p:'f3', sel:'#card-mode', t:T('同一张卡片，三种任务态','One card, three task states'),
+    b:T('特征卡片不是静态说明。发现态用于「我该用哪个」，诊断态用于「它为什么坏了」，替代态用于「换成什么」——同一份特征知识，按当前任务重组。','The feature card is not a static description. Discovery answers “which one should I use”, Diagnosis answers “why did it break”, Replacement answers “what do I switch to” — the same knowledge, reorganised around the task in hand.') },
+  { p:'f3', sel:'#card-main', t:T('切到诊断态，卡片内容整体重写','Switching to Diagnosis rewrites the card'),
+    b:T('从发现态切到诊断态，卡片不是多显示一段，而是换掉主体：健康状态、受影响策略、trace 证据顶到最前。这是恢复决策需要的信息，不是理解特征需要的。','Moving from Discovery to Diagnosis does not append a section — it replaces the body. Health, impacted strategies and trace evidence come to the front, because that is what a recovery decision needs, not what understanding a feature needs.'),
+    go:function(){ var d = document.querySelectorAll('#card-mode div')[1]; if (d) cardMode('diagnosis', d); } },
+
+  /* ── F4 · Replacement Discovery ── */
+  { p:'f4', sel:'#cand-list', t:T('候选是可切换的，整页跟着重算','Candidates are switchable, and the page recomputes'),
+    b:T('点击任意候选，右侧评分构成、护栏状态、以及 F5 的整份提案都按它重算。切到 #2 room_vertical_tag：覆盖率更低，ENFORCEMENT_STRATEGY_LOCK 和 REGION_COVERAGE_INSUFFICIENT 同时点亮，目标策略从 8 条掉到 5 条。','Click any candidate and the scoring breakdown, the guardrail states and the whole F5 proposal recompute. Switching to #2 room_vertical_tag: lower coverage, so ENFORCEMENT_STRATEGY_LOCK and REGION_COVERAGE_INSUFFICIENT both light up and the target strategies drop from 8 to 5.'),
     go:function(){ selectCand(1); } },
-  { p:'f4', sel:'#page-f4 .panel:last-child', t:T('护栏随候选变化','Guardrails follow the candidate'),
-    b:T('换到覆盖率更低的 room_vertical_tag 之后，ENFORCEMENT_STRATEGY_LOCK 和 REGION_COVERAGE_INSUFFICIENT 都被点亮了——目标策略从 8 条掉到 5 条。','With the lower-coverage room_vertical_tag selected, ENFORCEMENT_STRATEGY_LOCK and REGION_COVERAGE_INSUFFICIENT both light up, and the target strategies drop from 8 to 5.') },
-  { p:'f4', sel:'#cand-list', t:T('被排除的候选也是可点的','Even the excluded candidate is clickable'),
-    b:T('#4 room_type_backup_v1 语义最像，但与故障特征共用数据源。选中它，F5 会整体被 SOURCE_SHARED_RISK 阻断——护栏不是文案，是真的会挡住流程。','#4 room_type_backup_v1 is the closest semantic match but shares the failing source. Select it and F5 is blocked outright by SOURCE_SHARED_RISK — the guardrail is behaviour, not copy.'),
+  { p:'f4', sel:'#cand-list', g:1, t:T('语义最像的那个，恰恰不能用','The closest match is the one you cannot use'),
+    b:T('#4 room_type_backup_v1 语义最接近，但与故障特征共用数据源。选中它，下一页会被 SOURCE_SHARED_RISK 整体阻断——护栏不是提示文案，是真的会挡住流程。','#4 room_type_backup_v1 is the closest semantic match but shares the failing data source. Select it and the next page is blocked outright by SOURCE_SHARED_RISK — the guardrail is behaviour, not a warning label.'),
     go:function(){ selectCand(3); } },
-  { p:'f5', sel:'#prop-block', t:T('阻断是真的阻断','The block is real'),
-    b:T('提案没有生成，确认按钮不可用。回到 F4 选回 room_category_v2，流程才会恢复。','No proposal is generated and the confirm button is dead. Going back to F4 and reselecting room_category_v2 restores the flow.'),
+
+  /* ── F5 · IDSP Proposal ── */
+  { p:'f5', sel:'#prop-block', g:1, t:T('阻断是真的阻断','The block is real'),
+    b:T('提案没有生成，确认按钮不可用。回到 F4 选回 room_category_v2，流程才恢复——系统宁可什么都不给，也不给一个看起来能用的方案。','No proposal is generated and the confirm button is dead. Only reselecting room_category_v2 in F4 restores the flow — the system would rather return nothing than something that merely looks usable.'),
     go:function(){ setTimeout(function(){ selectCand(0); }, 900); } },
-  { p:'f5', sel:'#confirm-gate', t:T('人工确认关卡','The human confirmation gate'),
-    b:T('两个勾选项都完成之前，确认按钮保持禁用。确认之后写入的也只是 IDSP 草稿，状态机推进到 PUSHED_TO_IDSP，放量决策仍然由人做。','The confirm button stays disabled until both boxes are ticked. Even after confirmation only an IDSP draft is written, the state machine advances to PUSHED_TO_IDSP, and the rollout call stays with a human.') }
+  { p:'f5', sel:'#confirm-gate', g:1, t:T('Agent 提议，人确认','The Agent proposes, a human confirms'),
+    b:T('两个勾选项都完成前，确认按钮保持禁用。确认之后写入的也只是 IDSP 草稿，状态机推进到 PUSHED_TO_IDSP——放量决策仍然由人做，Agent 全程没有写权限。','The confirm button stays disabled until both boxes are ticked, and even then only an IDSP draft is written and the state machine advances to PUSHED_TO_IDSP. The rollout call stays with a human; the Agent never holds write access.') },
+
+  /* ── F6 · Lineage & Derived ── */
+  { p:'f6', sel:'#lineage-body', t:T('血缘解释了刚才那条护栏为什么存在','Lineage is why that guardrail exists'),
+    b:T('六类血缘关系里，SAME_SOURCE 这条写着：18 个特征共用 room_meta_service，本次一起受影响。这就是 F4 里 SOURCE_SHARED_RISK 的来源——共用数据源的候选不是替代品，是同一个故障的另一面。','Among the six lineage relations, SAME_SOURCE reads: 18 features share room_meta_service and all degraded together. That is where SOURCE_SHARED_RISK in F4 comes from — a candidate on the same source is not a replacement, it is the same failure wearing another name.'),
+    go:function(){ if (typeof linPick === 'function') linPick(2); } },
+  { p:'f6', sel:'#lineage-body', t:T('没有可用替代时，才谈派生','Derived features are the last resort, not the first'),
+    b:T('六类关系一起回答一个问题：这个特征还能靠谁。全部走不通时，才进入派生特征提案，并重新走一遍新建特征的评估——不是自动造一个新特征了事。','The six relations together answer one question: who else can carry this. Only when all of them fail does a derived-feature proposal open, and it re-enters the new-feature evaluation rather than quietly minting a feature.') },
+
+  /* ── Close ── */
+  { p:'f7', sel:'#page-f7', t:T('贯穿七页的同一条规矩','One rule running through all seven pages'),
+    b:T('每个结论后面都跟着证据 · 护栏会真的挡住流程，不只是提示 · 共用数据源的候选不算替代 · 语义最像不等于可用 · Agent 提议、人确认、Agent 从不写入。这些放在一起，才是这套系统敢被接进策略链路的原因。','Every conclusion carries its evidence · guardrails block the flow rather than warn about it · a candidate on the failing source is not a replacement · closest match is not usable match · the Agent proposes, a human confirms, the Agent never writes. Together they are why this can sit in a strategy pipeline at all.') }
 ];
 var demoI = -1;
 function demoStart(){ demoI = -1; $('coach-mask').classList.add('on'); demoNext(); }
@@ -2986,7 +3011,8 @@ function demoPaint(s, i){
     var pad = 6;
     spot.style.top = (r.top - pad) + 'px'; spot.style.left = (r.left - pad) + 'px';
     spot.style.width = (r.width + pad * 2) + 'px'; spot.style.height = (r.height + pad * 2) + 'px';
-    card.innerHTML = '<div class="coach-n">' + T('第 ','Step ') + (i + 1) + '/' + DEMO.length + '</div>' +
+    card.innerHTML = '<div class="coach-n">' + T('第 ','Step ') + (i + 1) + '/' + DEMO.length +
+      (s.g ? '<span class="coach-g">' + T('护栏','GUARDRAIL') + '</span>' : '') + '</div>' +
       '<div class="coach-t">' + s.t + '</div><div class="coach-b">' + s.b + '</div>' +
       '<div class="coach-f"><span class="coach-dots">' +
       DEMO.map(function(_, k){ return '<i class="' + (k === i ? 'on' : '') + '"></i>'; }).join('') + '</span>' +
