@@ -410,11 +410,13 @@ tbody tr.sev-warning{box-shadow:inset 3px 0 0 var(--warn)}
 .coach-mask.on{display:block}
 .spot{position:absolute;border-radius:10px;box-shadow:0 0 0 9999px rgba(15,23,42,.58);
   border:2px solid var(--primary);transition:all .3s cubic-bezier(.4,0,.2,1);pointer-events:none}
-.coach{position:absolute;background:#fff;border-radius:12px;padding:14px 16px;max-width:330px;
+.coach{position:fixed;left:20px;bottom:20px;top:auto;width:362px;max-width:calc(100vw - 40px);background:#fff;border-radius:12px;padding:16px 18px;max-height:min(72vh,600px);overflow-y:auto;
   box-shadow:0 20px 50px rgba(0,0,0,.3);transition:all .3s cubic-bezier(.4,0,.2,1)}
 .coach-n{font-size:10px;font-weight:700;letter-spacing:.07em;color:var(--primary);text-transform:uppercase;margin-bottom:5px}
 .coach-t{font-weight:700;font-size:14px;margin-bottom:5px;color:var(--text-1)}
-.coach-b{font-size:12.5px;line-height:1.65;color:var(--text-2)}
+.coach-b{font-size:13px;line-height:1.7;color:var(--text-2)}
+.coach-bar{height:3px;background:var(--bg-hover,#F1F3F6);border-radius:2px;margin:10px -18px 12px;}
+.coach-bar i{display:block;height:100%;background:var(--primary);border-radius:2px;transition:width .35s ease}
 .coach-f{display:flex;align-items:center;gap:8px;margin-top:12px}
 .coach-dots{display:flex;gap:4px;margin-right:auto}
 .coach-dots i{width:5px;height:5px;border-radius:50%;background:var(--border)}
@@ -3013,6 +3015,7 @@ function demoPaint(s, i){
     spot.style.width = (r.width + pad * 2) + 'px'; spot.style.height = (r.height + pad * 2) + 'px';
     card.innerHTML = '<div class="coach-n">' + T('第 ','Step ') + (i + 1) + '/' + DEMO.length +
       (s.g ? '<span class="coach-g">' + T('护栏','GUARDRAIL') + '</span>' : '') + '</div>' +
+      '<div class="coach-bar"><i style="width:' + Math.round((i + 1) / DEMO.length * 100) + '%"></i></div>' +
       '<div class="coach-t">' + s.t + '</div><div class="coach-b">' + s.b + '</div>' +
       '<div class="coach-f"><span class="coach-dots">' +
       DEMO.map(function(_, k){ return '<i class="' + (k === i ? 'on' : '') + '"></i>'; }).join('') + '</span>' +
@@ -3020,11 +3023,12 @@ function demoPaint(s, i){
       '<button class="btn btn-sm" onclick="demoEnd()">' + T('退出','Exit') + '</button>' +
       '<button class="btn btn-sm btn-primary" onclick="demoNext()">' +
       (i === DEMO.length - 1 ? T('完成','Finish') : T('下一步','Next')) + '</button></div>';
-    var cw = 330, ch = card.offsetHeight || 190;
-    var below = r.bottom + 14 + ch < window.innerHeight - 10;
-    card.style.top = (below ? r.bottom + 14 : Math.max(10, r.top - ch - 14)) + 'px';
-    var lx = r.left + r.width / 2 - cw / 2;
-    card.style.left = Math.max(12, Math.min(window.innerWidth - cw - 12, lx)) + 'px';
+    /* panel is docked bottom-left; only the spotlight moves. If the highlighted
+       element would sit under the panel, nudge the page so it does not. */
+    var pr = card.getBoundingClientRect();
+    if (el && r.left < pr.right + 12 && r.bottom > pr.top - 12) {
+      window.scrollBy({ top: Math.min(180, r.bottom - pr.top + 24), behavior:'smooth' });
+    }
   }, el ? 380 : 0);
 }
 
