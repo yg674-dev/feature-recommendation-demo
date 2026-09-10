@@ -816,6 +816,29 @@ tr.pick{background:var(--primary-light) !important}
 .sb-hd i{font-size:9px;letter-spacing:.09em}
 .coach-g{float:right;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--warn,#E8912B);
   background:var(--warn-light,#FDF3E4);border:1px solid rgba(232,145,43,.3);padding:1px 7px;border-radius:10px}
+
+/* guided-walkthrough launcher — sits where the coach panel will open */
+.demo-fab{position:fixed;left:20px;bottom:20px;z-index:590;display:inline-flex;align-items:center;gap:9px;
+  padding:12px 20px 12px 17px;border:0;border-radius:26px;cursor:pointer;font:inherit;font-size:13.5px;
+  font-weight:650;letter-spacing:-.01em;color:#fff;background:var(--primary);
+  box-shadow:0 10px 28px rgba(27,108,243,.38),0 2px 6px rgba(16,24,40,.14);
+  transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s,background .18s}
+.demo-fab:hover{background:var(--primary-hover,#1257CE);transform:translateY(-2px);
+  box-shadow:0 16px 36px rgba(27,108,243,.46),0 3px 8px rgba(16,24,40,.16)}
+.demo-fab:active{transform:translateY(0)}
+.demo-fab .tri{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;
+  background:rgba(255,255,255,.22);font-size:9px;padding-left:2px}
+.demo-fab .sub{font-weight:500;opacity:.78;font-size:12px}
+.demo-fab kbd{font-family:inherit;font-size:10.5px;font-weight:700;opacity:.72;
+  border:1px solid rgba(255,255,255,.45);border-radius:4px;padding:0 5px;margin-left:2px}
+.demo-fab.gone{opacity:0;transform:translateY(10px) scale(.96);pointer-events:none}
+/* one attention ring on first load, then it stops */
+.demo-fab::after{content:"";position:absolute;inset:0;border-radius:26px;border:2px solid var(--primary);
+  animation:demoPing 2.4s cubic-bezier(.2,.7,.3,1) 3;pointer-events:none}
+.demo-fab.seen::after{display:none}
+@keyframes demoPing{0%{opacity:.6;transform:scale(1)}70%,100%{opacity:0;transform:scale(1.28)}}
+@media (prefers-reduced-motion:reduce){.demo-fab::after{animation:none}.demo-fab{transition:none}}
+@media(max-width:760px){.demo-fab .sub,.demo-fab kbd{display:none}}
 </style>
 </head>
 <body class="lang-en">
@@ -825,7 +848,7 @@ tr.pick{background:var(--primary-light) !important}
   <div class="ab-div"></div>
   <div class="ab-crumb">Feature Platform <span>▾</span></div>
   <div class="ab-right">
-    <button class="btn btn-sm btn-soft" onclick="demoStart()" title="Guided walkthrough (D)">▶ Demo</button>
+    <button class="btn btn-sm" onclick="demoStart()" title="Guided walkthrough (D)">▶ Demo</button>
     <button class="btn btn-sm" id="lang-toggle" onclick="toggleLang()" title="Switch language">中文</button>
     <div class="env-badge">PROTOTYPE</div>
     <div class="ab-help" title="Support">?</div>
@@ -2997,9 +3020,14 @@ var DEMO = [
     b:T('每个结论后面都跟着证据 · 护栏会真的挡住流程，不只是提示 · 共用数据源的候选不算替代 · 语义最像不等于可用 · Agent 提议、人确认、Agent 从不写入。这些放在一起，才是这套系统敢被接进策略链路的原因。按 ⌘K 可以从这里直达任意页面、异常或候选。','Every conclusion carries its evidence · guardrails block the flow rather than warn about it · a candidate on the failing source is not a replacement · closest match is not usable match · the Agent proposes, a human confirms, the Agent never writes. Together they are why this can sit in a strategy pipeline at all. Press ⌘K to jump to any page, anomaly or candidate from here.') }
 ];
 var demoI = -1;
-function demoStart(){ demoI = -1; $('coach-mask').classList.add('on'); demoNext(); }
+function demoStart(){
+  var f = $('demo-fab');
+  if (f) { f.classList.add('seen', 'gone'); try { localStorage.setItem('demoSeen', '1'); } catch (e) {} }
+  demoI = -1; $('coach-mask').classList.add('on'); demoNext();
+}
 function demoEnd(){
   $('coach-mask').classList.remove('on'); demoI = -1;
+  var f = $('demo-fab'); if (f) f.classList.remove('gone');
   closeAgent();
   toast('ok', T('演示结束','Walkthrough finished'), T('随时可以点右上角 ▶ Demo 重看，或按 1–7 直接跳页。','Hit ▶ Demo any time to replay, or press 1–7 to jump between pages.'));
 }
@@ -3825,6 +3853,15 @@ function renderFlowbar(){
 </script>
 <div class="tip" id="tip"></div>
 <div class="toasts" id="toasts"></div>
+<button class="demo-fab" id="demo-fab" onclick="demoStart()" title="Guided walkthrough (D)">
+  <span class="tri">▶</span>
+  <span class="i-cn">引导演示</span><span class="i-en">Guided walkthrough</span>
+  <span class="sub i-cn">20 步</span><span class="sub i-en">20 steps</span>
+  <kbd>D</kbd>
+</button>
 <div class="coach-mask" id="coach-mask"><div class="spot" id="coach-spot"></div><div class="coach" id="coach-card"></div></div>
+<script>
+(function(){ try { if (localStorage.getItem('demoSeen')) { var f = document.getElementById('demo-fab'); if (f) f.classList.add('seen'); } } catch (e) {} })();
+</script>
 </body>
 </html>
