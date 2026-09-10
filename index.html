@@ -410,14 +410,16 @@ tbody tr.sev-warning{box-shadow:inset 3px 0 0 var(--warn)}
 .coach-mask.on{display:block}
 .spot{position:absolute;border-radius:10px;box-shadow:0 0 0 9999px rgba(15,23,42,.58);
   border:2px solid var(--primary);transition:all .3s cubic-bezier(.4,0,.2,1);pointer-events:none}
-.coach{position:fixed;left:20px;bottom:20px;top:auto;width:362px;max-width:calc(100vw - 40px);background:#fff;border-radius:12px;padding:16px 18px;max-height:min(72vh,600px);overflow-y:auto;
+.coach{position:fixed;left:20px;bottom:20px;top:auto;width:380px;box-sizing:border-box;overflow-x:hidden;max-width:calc(100vw - 40px);background:#fff;border-radius:12px;padding:16px 18px;max-height:min(72vh,600px);overflow-y:auto;
   box-shadow:0 20px 50px rgba(0,0,0,.3);transition:all .3s cubic-bezier(.4,0,.2,1)}
 .coach-n{font-size:10px;font-weight:700;letter-spacing:.07em;color:var(--primary);text-transform:uppercase;margin-bottom:5px}
 .coach-t{font-weight:700;font-size:14px;margin-bottom:5px;color:var(--text-1)}
 .coach-b{font-size:13px;line-height:1.7;color:var(--text-2)}
 .coach-bar{height:3px;background:var(--bg-hover,#F1F3F6);border-radius:2px;margin:10px -18px 12px;}
 .coach-bar i{display:block;height:100%;background:var(--primary);border-radius:2px;transition:width .35s ease}
-.coach-f{display:flex;align-items:center;gap:8px;margin-top:12px}
+.coach-f{display:flex;align-items:center;gap:8px;margin-top:14px;flex-wrap:nowrap}
+.coach-f .btn{flex:none;white-space:nowrap}
+.coach-pos{margin-right:auto;font-size:11.5px;color:var(--text-4);white-space:nowrap}
 .coach-dots{display:flex;gap:4px;margin-right:auto}
 .coach-dots i{width:5px;height:5px;border-radius:50%;background:var(--border)}
 .coach-dots i.on{background:var(--primary);width:14px;border-radius:3px}
@@ -2938,11 +2940,15 @@ var DEMO = [
     go:function(){ var k = document.querySelectorAll('#page-f1 .kpi')[2]; if (k) kpiPick(k, 'critical'); } },
   { p:'f1', sel:'#hm-table', t:T('热力图把「哪里坏了」变成两个维度','The heatmap turns “where” into two axes'),
     b:T('两个轴都可切换（特征 / 域 / 数据源 × 地区 / 实体 / 时间）。悬停任意格子展开健康分的三层构成——深红格子可以直接下钻，不用先猜是哪个特征。','Both axes switch — feature / domain / source against region / entity / time. Hovering breaks the health score into its three components, and the dark cells drill straight through without guessing which feature to open.') },
+  { p:'f1', sel:'#range-sel', t:T('时间窗口是活的','The window is live'),
+    b:T('切到「近 7 天」，六个 KPI、热力图分数和异常列表一起重算，并补进 3 条已恢复的历史异常——同一个看板回答「现在」和「这阵子」两个问题。','Switch to Last 7 days and all six KPIs, the heatmap scores and the anomaly list recompute together, adding three resolved historical anomalies — one dashboard answering both “right now” and “lately”.') },
   { p:'f1', sel:'#page-f1 .table-card', t:T('从列表锁定这次要追的异常','Locking onto the anomaly this run follows'),
     b:T('表头可排序、行可选中。第一行 room_type_feature 就是本次要追到底的那条——它会一路带着上下文走完剩下六页。','Headers sort, rows select. Row one, room_type_feature, is the anomaly this run follows — it carries its context through the remaining six pages.'),
     go:function(){ anomSort(3); } },
 
   /* ── F2 · Feature Drilldown ── */
+  { p:'f1', sel:'#anom-body tr', t:T('异常行就地展开，不跳页','Rows expand in place, no page jump'),
+    b:T('点任意一行展开它的证据、受影响策略，以及该指标 12 个采样点的走势。扫列表和看细节是同一个动作，不是两个页面。','Click any row for its evidence, impacted strategies and a 12-bucket sparkline. Scanning the list and reading the detail are one gesture, not two pages.') },
   { p:'f2', sel:'#dist-ctl', t:T('把漂移当作时间序列回放','Replay the drift as a time series'),
     b:T('拖动滑块或点击回放，看 07/29 16:00 到 07/30 06:00 分布是怎么塌的。关键时刻是 21:02——上游部署了映射表 v7。诊断从「什么时候变的」开始，而不是「现在是多少」。','Drag the slider or hit replay to watch the distribution collapse between 07/29 16:00 and 07/30 06:00. The pivot is 21:02, when the upstream mapping table v7 shipped. Diagnosis starts from when it changed, not from the current value.'),
     go:function(){ renderDist(1); setTimeout(distPlay, 400); } },
@@ -2969,6 +2975,8 @@ var DEMO = [
     go:function(){ selectCand(3); } },
 
   /* ── F5 · IDSP Proposal ── */
+  { p:'f4', sel:'#cand-list', t:T('四个候选可以并排比','Compare the four candidates side by side'),
+    b:T('「对比全部」把 4 个候选 × 7 项打分 × 6 条护栏摊平成一张表，每行最优值高亮。逐个点开比较是记忆负担，摊平之后是阅读。','Compare all flattens 4 candidates × 7 score components × 6 guardrails into one table, highlighting the best value in each row. Clicking through them one at a time is memory work; flattened, it is reading.') },
   { p:'f5', sel:'#prop-block', g:1, t:T('阻断是真的阻断','The block is real'),
     b:T('提案没有生成，确认按钮不可用。回到 F4 选回 room_category_v2，流程才恢复——系统宁可什么都不给，也不给一个看起来能用的方案。','No proposal is generated and the confirm button is dead. Only reselecting room_category_v2 in F4 restores the flow — the system would rather return nothing than something that merely looks usable.'),
     go:function(){ setTimeout(function(){ selectCand(0); }, 900); } },
@@ -2976,6 +2984,8 @@ var DEMO = [
     b:T('两个勾选项都完成前，确认按钮保持禁用。确认之后写入的也只是 IDSP 草稿，状态机推进到 PUSHED_TO_IDSP——放量决策仍然由人做，Agent 全程没有写权限。','The confirm button stays disabled until both boxes are ticked, and even then only an IDSP draft is written and the state machine advances to PUSHED_TO_IDSP. The rollout call stays with a human; the Agent never holds write access.') },
 
   /* ── F6 · Lineage & Derived ── */
+  { p:'f5', sel:'#whatif', g:1, t:T('What-if 会反推回护栏','What-if feeds back into the guardrails'),
+    b:T('把范围改成 Global，decision_change_rate 冲过 25% 的回滚阈值，确认按钮立刻被锁死——护栏不是发布前检查一次，是随参数实时重算。','Set the scope to Global and decision_change_rate breaches the 25% rollback threshold; the confirm button locks immediately. The guardrail is not a pre-flight check — it recomputes as the parameters move.') },
   { p:'f6', sel:'#lineage-body', t:T('血缘解释了刚才那条护栏为什么存在','Lineage is why that guardrail exists'),
     b:T('六类血缘关系里，SAME_SOURCE 这条写着：18 个特征共用 room_meta_service，本次一起受影响。这就是 F4 里 SOURCE_SHARED_RISK 的来源——共用数据源的候选不是替代品，是同一个故障的另一面。','Among the six lineage relations, SAME_SOURCE reads: 18 features share room_meta_service and all degraded together. That is where SOURCE_SHARED_RISK in F4 comes from — a candidate on the same source is not a replacement, it is the same failure wearing another name.'),
     go:function(){ if (typeof linPick === 'function') linPick(2); } },
@@ -2984,7 +2994,7 @@ var DEMO = [
 
   /* ── Close ── */
   { p:'f7', sel:'#page-f7', t:T('贯穿七页的同一条规矩','One rule running through all seven pages'),
-    b:T('每个结论后面都跟着证据 · 护栏会真的挡住流程，不只是提示 · 共用数据源的候选不算替代 · 语义最像不等于可用 · Agent 提议、人确认、Agent 从不写入。这些放在一起，才是这套系统敢被接进策略链路的原因。','Every conclusion carries its evidence · guardrails block the flow rather than warn about it · a candidate on the failing source is not a replacement · closest match is not usable match · the Agent proposes, a human confirms, the Agent never writes. Together they are why this can sit in a strategy pipeline at all.') }
+    b:T('每个结论后面都跟着证据 · 护栏会真的挡住流程，不只是提示 · 共用数据源的候选不算替代 · 语义最像不等于可用 · Agent 提议、人确认、Agent 从不写入。这些放在一起，才是这套系统敢被接进策略链路的原因。按 ⌘K 可以从这里直达任意页面、异常或候选。','Every conclusion carries its evidence · guardrails block the flow rather than warn about it · a candidate on the failing source is not a replacement · closest match is not usable match · the Agent proposes, a human confirms, the Agent never writes. Together they are why this can sit in a strategy pipeline at all. Press ⌘K to jump to any page, anomaly or candidate from here.') }
 ];
 var demoI = -1;
 function demoStart(){ demoI = -1; $('coach-mask').classList.add('on'); demoNext(); }
@@ -3017,8 +3027,7 @@ function demoPaint(s, i){
       (s.g ? '<span class="coach-g">' + T('护栏','GUARDRAIL') + '</span>' : '') + '</div>' +
       '<div class="coach-bar"><i style="width:' + Math.round((i + 1) / DEMO.length * 100) + '%"></i></div>' +
       '<div class="coach-t">' + s.t + '</div><div class="coach-b">' + s.b + '</div>' +
-      '<div class="coach-f"><span class="coach-dots">' +
-      DEMO.map(function(_, k){ return '<i class="' + (k === i ? 'on' : '') + '"></i>'; }).join('') + '</span>' +
+      '<div class="coach-f"><span class="coach-pos">' + T('还剩 ','') + (DEMO.length - i - 1) + T(' 步',' left') + '</span>' +
       (i ? '<button class="btn btn-sm" onclick="demoPrev()">' + T('上一步','Back') + '</button>' : '') +
       '<button class="btn btn-sm" onclick="demoEnd()">' + T('退出','Exit') + '</button>' +
       '<button class="btn btn-sm btn-primary" onclick="demoNext()">' +
@@ -3805,34 +3814,6 @@ function renderFlowbar(){
   renderLog();
 
   /* the guided demo picks up the new stops */
-  if (typeof DEMO !== 'undefined' && DEMO.push) {
-    DEMO.push(
-      { p:'f1', sel:'#range-sel',
-        cn:'时间窗口是活的', en:'The window is live',
-        b:T('切到「近 7 天」，六个 KPI、热力图分数和异常列表会一起重算，并补进 3 条已恢复的历史异常。',
-            'Switch to Last 7 days and all six KPIs, the heatmap scores and the anomaly list recompute together, adding three resolved historical anomalies.') },
-      { p:'f1', sel:'#anom-body tr',
-        cn:'异常行可以就地展开', en:'Rows expand in place',
-        b:T('点任意一行会展开证据、受影响策略和该指标 12 个采样点的走势图，不需要跳页。',
-            'Click any row to expand its evidence, impacted strategies and a 12-bucket sparkline of the metric — no page jump needed.') },
-      { p:'f4', sel:'#cand-list',
-        cn:'四个候选可以并排比', en:'Compare the four candidates',
-        b:T('「对比全部」把 4 个候选 × 7 项打分 × 6 条护栏摊平成一张表，每行的最优值会高亮。',
-            'Compare all flattens 4 candidates × 7 score components × 6 guardrails into one table and highlights the best value in every row.') },
-      { p:'f5', sel:'#whatif',
-        cn:'What-if 会反推回护栏', en:'What-if feeds back into the guardrails',
-        b:T('把范围改成 Global，decision_change_rate 会冲过 25% 的回滚阈值，确认按钮立刻被锁死。',
-            'Set the scope to Global and decision_change_rate breaches the 25% rollback threshold — the confirm button locks immediately.') },
-      { p:'f6', sel:'#lineage-body',
-        cn:'血缘关系可以点开', en:'Lineage rows open up',
-        b:T('点 SAME_SOURCE 会展开那 18 个共用 room_meta_service 的特征，以及影响面进度条。',
-            'Click SAME_SOURCE to expand the 18 features sharing room_meta_service, with a blast-radius bar.') },
-      { p:'f1', sel:'#pal-btn',
-        cn:'⌘K 是全局入口', en:'⌘K is the global entry point',
-        b:T('命令面板可以直达任意页面、任意异常特征、任意候选，或者直接触发演示、重置、对比、回放。',
-            'The command palette jumps to any page, anomaly, or candidate, and fires the demo, reset, comparison or replay directly.') }
-    );
-  }
 
   setTimeout(function(){
     toast('', T('v0.4 · Feature Recommendation Demo 设计规范','v0.4 · Feature Recommendation Demo design system'),
