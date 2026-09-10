@@ -2958,62 +2958,54 @@ var DEMO = [
   /* ── F1 · Monitoring Dashboard ── */
   { p:'f1', sel:'#flowbar', t:T('这条流水线就是产品本身','The pipeline is the product'),
     b:T('异常 → 下钻 → 特征卡片 → 替代发现 → IDSP 提案。状态条贯穿全部页面，记住当前环节、这次处理的特征、地区和选中的候选，五个环节都可以直接点。接下来按这条线走一遍。','Anomaly → drilldown → feature card → replacement discovery → IDSP proposal. The bar runs across every page, remembering the stage, the feature, the region and the selected candidate. This walkthrough follows it end to end.') },
-  { p:'f1', sel:'#page-f1 .kpi-row', t:T('聚合数字本身就是筛选器','The aggregate numbers are the filter'),
-    b:T('KPI 卡片可点击：点「严重」把下方异常列表收敛到 critical，点「监控中的特征」恢复全部。看板不是只读的报表，是进入明细的入口。','KPI cards are clickable — Critical narrows the anomaly list below, Total monitored features restores it. The dashboard is an entry point, not a read-only report.'),
+  { p:'f1', sel:'#page-f1 .kpi-row', t:T('看板是入口，不是报表','The dashboard is an entry point, not a report'),
+    b:T('KPI 卡片就是筛选器——点「严重」把异常列表收敛到 critical。时间窗口同样是活的：切到「近 7 天」，六个 KPI、热力图分数和列表一起重算，并补进 3 条已恢复的历史异常。同一个页面回答「现在」和「这阵子」。','KPI cards are filters — Critical narrows the anomaly list below. The window is live too: switch to Last 7 days and all six KPIs, the heatmap scores and the list recompute together, adding three resolved anomalies. One page answering both “right now” and “lately”.'),
     go:function(){ var k = document.querySelectorAll('#page-f1 .kpi')[2]; if (k) kpiPick(k, 'critical'); } },
   { p:'f1', sel:'#hm-table', t:T('热力图把「哪里坏了」变成两个维度','The heatmap turns “where” into two axes'),
     b:T('两个轴都可切换（特征 / 域 / 数据源 × 地区 / 实体 / 时间）。悬停任意格子展开健康分的三层构成——深红格子可以直接下钻，不用先猜是哪个特征。','Both axes switch — feature / domain / source against region / entity / time. Hovering breaks the health score into its three components, and the dark cells drill straight through without guessing which feature to open.') },
-  { p:'f1', sel:'#range-sel', t:T('时间窗口是活的','The window is live'),
-    b:T('切到「近 7 天」，六个 KPI、热力图分数和异常列表一起重算，并补进 3 条已恢复的历史异常——同一个看板回答「现在」和「这阵子」两个问题。','Switch to Last 7 days and all six KPIs, the heatmap scores and the anomaly list recompute together, adding three resolved historical anomalies — one dashboard answering both “right now” and “lately”.') },
-  { p:'f1', sel:'#page-f1 .table-card', t:T('从列表锁定这次要追的异常','Locking onto the anomaly this run follows'),
-    b:T('表头可排序、行可选中。第一行 room_type_feature 就是本次要追到底的那条——它会一路带着上下文走完剩下六页。','Headers sort, rows select. Row one, room_type_feature, is the anomaly this run follows — it carries its context through the remaining six pages.'),
+  { p:'f1', sel:'#page-f1 .table-card', t:T('锁定这次要追的异常','Locking onto the anomaly this run follows'),
+    b:T('表头可排序，行可就地展开证据、受影响策略和 12 个采样点的走势——扫列表和看细节是同一个动作。第一行 room_type_feature 就是本次要追到底的那条，它会带着上下文走完剩下六页。','Headers sort, and rows expand in place with their evidence, impacted strategies and a 12-bucket sparkline — scanning and reading detail are one gesture. Row one, room_type_feature, is the anomaly this run follows through the remaining six pages.'),
     go:function(){ anomSort(3); } },
 
   /* ── F2 · Feature Drilldown ── */
-  { p:'f1', sel:'#anom-body tr', t:T('异常行就地展开，不跳页','Rows expand in place, no page jump'),
-    b:T('点任意一行展开它的证据、受影响策略，以及该指标 12 个采样点的走势。扫列表和看细节是同一个动作，不是两个页面。','Click any row for its evidence, impacted strategies and a 12-bucket sparkline. Scanning the list and reading the detail are one gesture, not two pages.') },
   { p:'f2', sel:'#dist-ctl', t:T('把漂移当作时间序列回放','Replay the drift as a time series'),
     b:T('拖动滑块或点击回放，看 07/29 16:00 到 07/30 06:00 分布是怎么塌的。关键时刻是 21:02——上游部署了映射表 v7。诊断从「什么时候变的」开始，而不是「现在是多少」。','Drag the slider or hit replay to watch the distribution collapse between 07/29 16:00 and 07/30 06:00. The pivot is 21:02, when the upstream mapping table v7 shipped. Diagnosis starts from when it changed, not from the current value.'),
     go:function(){ renderDist(1); setTimeout(distPlay, 400); } },
   { p:'f2', sel:'#metric-body', t:T('每个指标都能展开成证据','Every metric opens into evidence'),
     b:T('点击任意指标卡展开它的统计口径，以及这次为什么变差。数字不是结论，是支撑结论的材料。','Click any metric card to expand how it is computed and why it degraded. The numbers are not the conclusion — they are what the conclusion rests on.'),
     go:function(){ var m = document.querySelectorAll('#metric-body .metric'); for (var i = 0; i < 3 && i < m.length; i++) m[i].classList.add('open'); } },
-  { p:'f2', sel:'#page-f2 .agent-panel', g:1, t:T('Agent 先给推理过程，再给结论','The Agent shows its work before its answer'),
-    b:T('打开 Agent 面板会先逐步播放：调用了哪些技能、检索了什么、哪条护栏过滤掉了哪个假设——然后才是结论。结论后面永远跟着证据，这是它敢被信任的前提。','Opening the panel plays back which skills ran, what was retrieved and which guardrail filtered which hypothesis — then the conclusion. Every conclusion carries its evidence, which is the condition for trusting it at all.'),
+  { p:'f2', sel:'#agent-modal .modal', g:1, wait:2300, t:T('Agent 先给推理过程，再给结论','The Agent shows its work before its answer'),
+    b:T('面板会逐条播放：调用了哪些技能、检索了什么、哪条护栏过滤掉了哪个假设——然后才是结论和按置信度排序的根因假设。结论后面永远跟着证据，这是它敢被信任的前提。','The panel plays back, line by line, which skills ran, what was retrieved and which guardrail filtered which hypothesis — then the conclusion and the root-cause hypotheses ranked by confidence. Every conclusion carries its evidence, which is the condition for trusting it at all.'),
     go:function(){ openAgent('diagnose'); }, close:true },
 
   /* ── F3 · Feature Card ── */
   { p:'f3', sel:'#card-mode', t:T('同一张卡片，三种任务态','One card, three task states'),
     b:T('特征卡片不是静态说明。发现态用于「我该用哪个」，诊断态用于「它为什么坏了」，替代态用于「换成什么」——同一份特征知识，按当前任务重组。','The feature card is not a static description. Discovery answers “which one should I use”, Diagnosis answers “why did it break”, Replacement answers “what do I switch to” — the same knowledge, reorganised around the task in hand.') },
-  { p:'f3', sel:'#card-main', t:T('切到诊断态，卡片内容整体重写','Switching to Diagnosis rewrites the card'),
-    b:T('从发现态切到诊断态，卡片不是多显示一段，而是换掉主体：健康状态、受影响策略、trace 证据顶到最前。这是恢复决策需要的信息，不是理解特征需要的。','Moving from Discovery to Diagnosis does not append a section — it replaces the body. Health, impacted strategies and trace evidence come to the front, because that is what a recovery decision needs, not what understanding a feature needs.'),
+  { p:'f3', sel:'#card-main', t:T('切到诊断态，卡片主体整体重写','Switching to Diagnosis rewrites the body'),
+    b:T('从发现态切到诊断态，不是多显示一段，而是换掉主体：健康状态、受影响策略、trace 证据顶到最前。这是恢复决策需要的信息，不是理解特征需要的。','Moving from Discovery to Diagnosis does not append a section — it replaces the body. Health, impacted strategies and trace evidence come to the front, because that is what a recovery decision needs, not what understanding a feature needs.'),
     go:function(){ var d = document.querySelectorAll('#card-mode div')[1]; if (d) cardMode('diagnosis', d); } },
 
   /* ── F4 · Replacement Discovery ── */
-  { p:'f4', sel:'#cand-list', t:T('候选是可切换的，整页跟着重算','Candidates are switchable, and the page recomputes'),
-    b:T('点击任意候选，右侧评分构成、护栏状态、以及 F5 的整份提案都按它重算。切到 #2 room_vertical_tag：覆盖率更低，ENFORCEMENT_STRATEGY_LOCK 和 REGION_COVERAGE_INSUFFICIENT 同时点亮，目标策略从 8 条掉到 5 条。','Click any candidate and the scoring breakdown, the guardrail states and the whole F5 proposal recompute. Switching to #2 room_vertical_tag: lower coverage, so ENFORCEMENT_STRATEGY_LOCK and REGION_COVERAGE_INSUFFICIENT both light up and the target strategies drop from 8 to 5.'),
+  { p:'f4', sel:'#cand-list', t:T('候选可切换，也可以并排比','Candidates switch, and they compare side by side'),
+    b:T('点击任意候选，右侧评分构成、护栏状态、以及 F5 的整份提案都按它重算——切到 #2 room_vertical_tag，ENFORCEMENT_STRATEGY_LOCK 与 REGION_COVERAGE_INSUFFICIENT 同时点亮，目标策略从 8 条掉到 5 条。「对比全部」则把 4 个候选 × 7 项打分 × 6 条护栏摊平成一张表，逐个点开是记忆负担，摊平之后是阅读。','Click any candidate and the scoring breakdown, the guardrail states and the whole F5 proposal recompute — switching to #2 room_vertical_tag lights up ENFORCEMENT_STRATEGY_LOCK and REGION_COVERAGE_INSUFFICIENT, dropping the target strategies from 8 to 5. Compare all flattens 4 candidates × 7 score components × 6 guardrails into one table: clicking through them is memory work, flattened it is reading.'),
     go:function(){ selectCand(1); } },
   { p:'f4', sel:'#cand-list', g:1, t:T('语义最像的那个，恰恰不能用','The closest match is the one you cannot use'),
     b:T('#4 room_type_backup_v1 语义最接近，但与故障特征共用数据源。选中它，下一页会被 SOURCE_SHARED_RISK 整体阻断——护栏不是提示文案，是真的会挡住流程。','#4 room_type_backup_v1 is the closest semantic match but shares the failing data source. Select it and the next page is blocked outright by SOURCE_SHARED_RISK — the guardrail is behaviour, not a warning label.'),
     go:function(){ selectCand(3); } },
 
   /* ── F5 · IDSP Proposal ── */
-  { p:'f4', sel:'#cand-list', t:T('四个候选可以并排比','Compare the four candidates side by side'),
-    b:T('「对比全部」把 4 个候选 × 7 项打分 × 6 条护栏摊平成一张表，每行最优值高亮。逐个点开比较是记忆负担，摊平之后是阅读。','Compare all flattens 4 candidates × 7 score components × 6 guardrails into one table, highlighting the best value in each row. Clicking through them one at a time is memory work; flattened, it is reading.') },
   { p:'f5', sel:'#prop-block', g:1, t:T('阻断是真的阻断','The block is real'),
     b:T('提案没有生成，确认按钮不可用。回到 F4 选回 room_category_v2，流程才恢复——系统宁可什么都不给，也不给一个看起来能用的方案。','No proposal is generated and the confirm button is dead. Only reselecting room_category_v2 in F4 restores the flow — the system would rather return nothing than something that merely looks usable.'),
     go:function(){ setTimeout(function(){ selectCand(0); }, 900); } },
+  { p:'f5', sel:'#whatif', g:1, t:T('What-if 会反推回护栏','What-if feeds back into the guardrails'),
+    b:T('把范围改成 Global，decision_change_rate 冲过 25% 的回滚阈值，确认按钮立刻被锁死——护栏不是发布前检查一次，是随参数实时重算。','Set the scope to Global and decision_change_rate breaches the 25% rollback threshold; the confirm button locks immediately. The guardrail is not a pre-flight check — it recomputes as the parameters move.') },
   { p:'f5', sel:'#confirm-gate', g:1, t:T('Agent 提议，人确认','The Agent proposes, a human confirms'),
     b:T('两个勾选项都完成前，确认按钮保持禁用。确认之后写入的也只是 IDSP 草稿，状态机推进到 PUSHED_TO_IDSP——放量决策仍然由人做，Agent 全程没有写权限。','The confirm button stays disabled until both boxes are ticked, and even then only an IDSP draft is written and the state machine advances to PUSHED_TO_IDSP. The rollout call stays with a human; the Agent never holds write access.') },
 
   /* ── F6 · Lineage & Derived ── */
-  { p:'f5', sel:'#whatif', g:1, t:T('What-if 会反推回护栏','What-if feeds back into the guardrails'),
-    b:T('把范围改成 Global，decision_change_rate 冲过 25% 的回滚阈值，确认按钮立刻被锁死——护栏不是发布前检查一次，是随参数实时重算。','Set the scope to Global and decision_change_rate breaches the 25% rollback threshold; the confirm button locks immediately. The guardrail is not a pre-flight check — it recomputes as the parameters move.') },
   { p:'f6', sel:'#lineage-body', t:T('血缘解释了刚才那条护栏为什么存在','Lineage is why that guardrail exists'),
-    b:T('六类血缘关系里，SAME_SOURCE 这条写着：18 个特征共用 room_meta_service，本次一起受影响。这就是 F4 里 SOURCE_SHARED_RISK 的来源——共用数据源的候选不是替代品，是同一个故障的另一面。','Among the six lineage relations, SAME_SOURCE reads: 18 features share room_meta_service and all degraded together. That is where SOURCE_SHARED_RISK in F4 comes from — a candidate on the same source is not a replacement, it is the same failure wearing another name.'),
+    b:T('SAME_SOURCE 这条写着：18 个特征共用 room_meta_service，本次一起受影响——这就是 F4 里 SOURCE_SHARED_RISK 的来源。六类关系一起回答一个问题：这个特征还能靠谁。全部走不通时才进入派生特征提案，并重新走一遍新建特征的评估，而不是自动造一个了事。','SAME_SOURCE reads: 18 features share room_meta_service and all degraded together — that is where SOURCE_SHARED_RISK in F4 comes from. The six relations together answer one question: who else can carry this. Only when all of them fail does a derived-feature proposal open, and it re-enters the new-feature evaluation rather than quietly minting a feature.'),
     go:function(){ if (typeof linPick === 'function') linPick(2); } },
-  { p:'f6', sel:'#lineage-body', t:T('没有可用替代时，才谈派生','Derived features are the last resort, not the first'),
-    b:T('六类关系一起回答一个问题：这个特征还能靠谁。全部走不通时，才进入派生特征提案，并重新走一遍新建特征的评估——不是自动造一个新特征了事。','The six relations together answer one question: who else can carry this. Only when all of them fail does a derived-feature proposal open, and it re-enters the new-feature evaluation rather than quietly minting a feature.') },
 
   /* ── Close ── */
   { p:'f7', sel:'#page-f7', t:T('贯穿七页的同一条规矩','One rule running through all seven pages'),
@@ -3040,7 +3032,7 @@ function demoGo(i){
   var s = DEMO[i];
   if (s.p) switchPage(s.p);
   if (s.go) s.go();
-  setTimeout(function(){ demoPaint(s, i); }, s.go ? 520 : 260);
+  setTimeout(function(){ demoPaint(s, i); }, s.wait || (s.go ? 520 : 260));
 }
 function demoPaint(s, i){
   var el = document.querySelector(s.sel);
@@ -3856,7 +3848,7 @@ function renderFlowbar(){
 <button class="demo-fab" id="demo-fab" onclick="demoStart()" title="Guided walkthrough (D)">
   <span class="tri">▶</span>
   <span class="i-cn">引导演示</span><span class="i-en">Guided walkthrough</span>
-  <span class="sub i-cn">20 步</span><span class="sub i-en">20 steps</span>
+  <span class="sub i-cn">16 步</span><span class="sub i-en">16 steps</span>
   <kbd>D</kbd>
 </button>
 <div class="coach-mask" id="coach-mask"><div class="spot" id="coach-spot"></div><div class="coach" id="coach-card"></div></div>
